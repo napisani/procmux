@@ -1,0 +1,59 @@
+layout:
+  hide_help: false 
+procs:
+  "tail log":
+    shell: "tail -f /tmp/term.log"
+    autostart: false
+  "print envs":
+    shell: "echo $SOME_TEST"
+    autostart: false
+    env: 
+      SOME_TEST: "AAAAAA"
+  "vim":
+    shell: "vim"
+    autostart: false
+  "do-test":
+    shell: "echo 'some text here' && sleep 3 && echo 'still running'  && sleep 3 && echo 'final text'"
+    autostart: false
+  "colors":
+    shell: "./print_colors.sh"
+    autostart: false
+  "partners:serve":
+    shell: "npm run serve -w partners-web"
+    autostart: false
+  "web:serve":
+    shell: "npm run serve -w web"
+    autostart: false
+  "mobile:patient-app:serve":
+    shell: "npm run patient:serve -w mobile"
+    autostart: false
+  "mobile:start-proxy":
+    shell: "npm run start-proxy -w mobile"
+    autostart: false
+  "docker:up":
+    shell: "docker-compose up"
+    autostart: false
+  "docker-emu-task-db:up":
+    shell: "docker-compose up tasks gcloud-tasks-emulator db"
+    autostart: false
+  "api:up":
+    shell: " cd api && direnv exec ./ python3 entrypoint.py"
+    autostart: false
+  "docker-compose:rebuild":
+    shell: "docker-compose kill ; docker-compose rm -f ; docker-compose build"
+    autostart: false
+  "npm:install":
+    shell: "npm install"
+    autostart: false
+  "npm:compile":
+    shell: "npm run compile"
+    autostart: false
+  "npm:clean":
+    shell: "npm run clean"
+    autostart: false
+  "js-packages:build":
+    shell: "npm run js-packages:build"
+    autostart: false
+  "api-client:generate-and-build":
+    shell: "npm run generate-source -w ./js-packages/api-client && npm run build -w ./js-packages/api-client && echo 'done'"
+    autostart: false
