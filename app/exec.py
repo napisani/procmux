@@ -166,3 +166,10 @@ class TerminalManager:
 
     def register_process_spawn_handler(self, on_spawn: Callable):
         self._on_spawn_callbacks.append(on_spawn)
+
+    def autostart_conditionally(self) -> bool:
+        proc_config = self._ctx.config.procs[self._proc_name]
+        if proc_config.autostart:
+            self.spawn_terminal()
+            return True
+        return False

@@ -46,6 +46,7 @@ class LayoutConfig:
     hide_help: bool = False
     hide_process_description_panel: bool = False
     processes_list_width: int = 31
+    sort_process_list_alpha: bool = True
 
 
 @dataclass

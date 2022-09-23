@@ -3,10 +3,10 @@ layout:
 procs:
   "tail log":
     shell: "tail -f /tmp/term.log"
-    autostart: false
+    autostart: true 
   "print envs":
     shell: "echo $SOME_TEST"
-    autostart: false
+    autostart: true 
     env: 
       SOME_TEST: "AAAAAA"
   "vim":
