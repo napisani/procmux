@@ -12,6 +12,7 @@ from ptterm import Terminal
 from app.context import ProcMuxContext
 from app.exec import TerminalManager
 from app.log import logger
+from app.tui.focus import FocusManager
 from app.tui.help import HelpPanel
 from app.tui.process_description import ProcessDescriptionPanel
 from app.tui.side_bar import SideBar
@@ -42,7 +43,7 @@ def _prep_tui_state():
         for proc_name in ctx.tui_state.process_name_list
     ]
     ctx.tui_state.terminal_managers = terminal_managers
-    ctx.tui_state.focus = FocusWidget.SIDE_BAR
+    # ctx.tui_state.focus = FocusWidget.SIDE_BAR
 
 
 def start_tui():
@@ -69,15 +70,26 @@ def start_tui():
     def _handle_quit():
         application.exit()
 
-    side_bar = SideBar(on_start=_handle_cmd_started,
-                       on_stop=_handle_stop_cmd,
-                       on_down=_handle_process_focus_changed,
-                       on_up=_handle_process_focus_changed,
-                       on_quit=_handle_quit)
     terminal_placeholder = Window(style=f'bg:{ctx.config.style.placeholder_terminal_bg_color}',
                                   width=_width_100,
                                   height=_height_100)
     current_terminal = terminal_placeholder
+
+    def _on_terminal_change(term):
+        nonlocal current_terminal
+        current_terminal = term
+
+    focus_manager = FocusManager(on_terminal_change=_on_terminal_change)
+
+    side_bar = SideBar(
+        focus_manager=focus_manager,
+        on_start=_handle_cmd_started,
+        on_stop=_handle_stop_cmd,
+        on_down=_handle_process_focus_changed,
+        on_up=_handle_process_focus_changed,
+        on_quit=_handle_quit)
+
+    focus_manager.register_side_bar(side_bar)
 
     def _get_current_terminal():
         return current_terminal
@@ -90,27 +102,11 @@ def start_tui():
         @kb.add(keybinding)
         def _switch_focus(_event):
             logger.info('in _switch_focus')
-            switch_focus()
+            focus_manager.switch_focus()
 
-    def switch_focus():
-        idx = ctx.tui_state.selected_process_idx
-        if not application.layout.has_focus(side_bar):
-            logger.info('focusing on sidebar')
-            application.layout.focus(side_bar)
-            after_focus_change(FocusWidget.SIDE_BAR)
-        elif idx is not None:
-            t_manager = ctx.tui_state.terminal_managers[idx]
-            term = t_manager.get_terminal()
-            if term:
-                nonlocal current_terminal
-                current_terminal = term
-                application.layout.focus(term)
-                after_focus_change(FocusWidget.TERMINAL)
-                logger.info(f'focusing on terminal for idx: {idx} ')
-
-    def after_focus_change(new_focus: FocusWidget):
-        ctx.tui_state.focus = new_focus
-        # refresh_styles()
+    # def after_focus_change(new_focus: FocusWidget):
+    # ctx.tui_state.focus = new_focus
+    # refresh_styles()
 
     # styles = Style.from_dict({
     #     'sidebar': 'bold'
@@ -125,7 +121,7 @@ def start_tui():
                 ]),
                 ConditionalContainer(content=ProcessDescriptionPanel(),
                                      filter=not ctx.config.layout.hide_process_description_panel),
-                ConditionalContainer(content=HelpPanel(),
+                ConditionalContainer(content=HelpPanel(focus_manager=focus_manager),
                                      filter=not ctx.config.layout.hide_help)
             ]),
             focused_element=side_bar

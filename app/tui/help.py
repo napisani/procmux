@@ -7,14 +7,17 @@ from prompt_toolkit.layout import Window
 from prompt_toolkit.layout.controls import FormattedTextControl
 
 from app.context import ProcMuxContext
+from app.tui.focus import FocusManager
 from app.tui_state import FocusWidget
 
 
 class HelpPanel:
     def __init__(
-            self
+            self,
+            focus_manager: FocusManager
     ):
         self._ctx = ProcMuxContext()
+        self._focus_manager = focus_manager
         self.container = Window(
             height=1,
             # style='class:title',
@@ -28,7 +31,7 @@ class HelpPanel:
         result = []
         delimiter = " | "
         key_config = self._ctx.config.keybinding
-        if self._ctx.tui_state.focus == FocusWidget.SIDE_BAR:
+        if self._focus_manager.get_focused_widget() == FocusWidget.SIDE_BAR:
             result.append(self._get_key_combo_text(key_config.up, 'up'))
             result.append(delimiter)
             result.append(self._get_key_combo_text(key_config.down, 'down'))

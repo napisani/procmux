@@ -15,4 +15,3 @@ class TUIState:
     process_name_list: List[str] = field(default_factory=lambda: [])
     process_status_list: List[bool] = field(default_factory=lambda: [])
     terminal_managers: List[TerminalManager] = field(default_factory=lambda: [])
-    focus: FocusWidget = FocusWidget.SIDE_BAR

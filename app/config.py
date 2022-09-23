@@ -31,9 +31,7 @@ class ProcessConfig:
     add_path: Optional[Union[str, List[str]]] = None
     # end of mproc config points
 
-    description: Optional[str] = "fjkfldsjfdsfdsjkalfjdsaklfds jfdskalfjsdakfdjsaklfjdslakfjdskalfjdskalf dsjaklf dsajfkdsa fdskajfdsklajfkdsljflkdsajfkldsjklfjsdalfjsdakfjsdafjds fjdskalfjdskajfdkslajfkdslajfkldsaj"
-
-
+    description: Optional[str] = None
 
     def __post_init__(self):
         self.validate()
@@ -63,6 +61,7 @@ class StyleConfig:
 @dataclass
 class KeybindingConfig:
     quit: List[str] = field(default_factory=lambda: ['q'])
+    filter: List[str] = field(default_factory=lambda: ['/'])
     start: List[str] = field(default_factory=lambda: ['s'])
     stop: List[str] = field(default_factory=lambda: ['x'])
     up: List[str] = field(default_factory=lambda: ['k', 'up'])
