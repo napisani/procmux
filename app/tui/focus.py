@@ -21,10 +21,13 @@ class FocusManager:
         application = get_app()
         if application.layout.has_focus(self._side_bar):
             return FocusWidget.SIDE_BAR
-
         return FocusWidget.TERMINAL
 
-    def switch_focus(self):
+    def set_focus(self, element):
+        application = get_app()
+        application.layout.focus(element)
+
+    def toggle_sidebar_terminal_focus(self):
         assert self._side_bar
         assert self._on_terminal_change
         application = get_app()

@@ -63,6 +63,7 @@ class StyleConfig:
 class KeybindingConfig:
     quit: List[str] = field(default_factory=lambda: ['q'])
     filter: List[str] = field(default_factory=lambda: ['/'])
+    submit_filter: List[str] = field(default_factory=lambda: ['enter'])
     start: List[str] = field(default_factory=lambda: ['s'])
     stop: List[str] = field(default_factory=lambda: ['x'])
     up: List[str] = field(default_factory=lambda: ['k', 'up'])

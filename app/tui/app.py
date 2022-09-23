@@ -105,7 +105,7 @@ def start_tui():
         @kb.add(keybinding)
         def _switch_focus(_event):
             logger.info('in _switch_focus')
-            focus_manager.switch_focus()
+            focus_manager.toggle_sidebar_terminal_focus()
 
     # def after_focus_change(new_focus: FocusWidget):
     # ctx.tui_state.focus = new_focus
@@ -154,5 +154,6 @@ def start_tui():
         manager.register_process_done_handler(refresh_app)
         manager.register_process_spawn_handler(refresh_app)
         manager.autostart_conditionally()
+        refresh_app()
 
     application.run()

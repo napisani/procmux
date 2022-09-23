@@ -4,20 +4,25 @@ procs:
   "tail log":
     shell: "tail -f /tmp/term.log"
     autostart: true 
+    description: 'tail the app log'
   "print envs":
     shell: "echo $SOME_TEST"
-    autostart: true 
+    description: 'this command will print env vars that are configured in the child pid'
     env: 
       SOME_TEST: "AAAAAA"
   "vim":
     shell: "vim"
     autostart: false
+    description: 'start vim'
   "do-test":
     shell: "echo 'some text here' && sleep 3 && echo 'still running'  && sleep 3 && echo 'final text'"
     autostart: false
+    description: 'print a using sleeps in between'
   "colors":
     shell: "./print_colors.sh"
     autostart: false
+    description: 'test terminal colors'
+
   "partners:serve":
     shell: "npm run serve -w partners-web"
     autostart: false
