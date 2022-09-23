@@ -21,6 +21,7 @@ procs:
   "partners:serve":
     shell: "npm run serve -w partners-web"
     autostart: false
+    cwd: '/Users/nick/code/clearing-app2'
   "web:serve":
     shell: "npm run serve -w web"
     autostart: false

@@ -2,6 +2,7 @@ import os
 import pty
 import signal
 import subprocess
+import sys
 from typing import Callable, List, Optional
 
 from ptterm import Terminal
@@ -80,13 +81,27 @@ class TerminalManager:
         if on_spawn:
             self._on_spawn_callbacks = [on_spawn]
 
-    def export_env_vars(self) -> bool:
+    def _export_env_vars(self) -> bool:
         proc_config = self._ctx.config.procs[self._proc_name]
         if proc_config.env:
             for key, value in proc_config.env.items():
                 os.environ[key] = value
             return True
         return False
+
+    def _adjust_path(self):
+        proc_config = self._ctx.config.procs[self._proc_name]
+        if proc_config.add_path:
+            paths = proc_config.add_path
+            if type(proc_config.add_path) == str:
+                paths = [proc_config.add_path]
+            for p in paths:
+                sys.path.append(p)
+
+    def _change_working_directory(self):
+        proc_config = self._ctx.config.procs[self._proc_name]
+        if proc_config.cwd:
+            os.chdir(proc_config.cwd)
 
     def get_cmd(self) -> List[str]:
         proc_config = self._ctx.config.procs[self._proc_name]
@@ -132,8 +147,13 @@ class TerminalManager:
     def spawn_terminal(self):
         if self.is_running():
             return self._terminal
-        self.export_env_vars()
-        self._terminal = self._term_ctor(self.get_cmd(), self._handle_process_done)
+
+        def before_exec():
+            self._change_working_directory()
+            self._export_env_vars()
+            self._adjust_path()
+
+        self._terminal = self._term_ctor(self.get_cmd(), before_exec, self._handle_process_done)
         logger.info(f'created terminal {self._terminal}')
         self._running = True
         return self._terminal

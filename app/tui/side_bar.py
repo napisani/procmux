@@ -14,6 +14,8 @@ from app.log import logger
 
 
 class SideBar:
+    _right_padding = 5
+
     def __init__(
             self,
             on_start: Optional[Callable[[int], Any]] = None,
@@ -29,8 +31,10 @@ class SideBar:
         self._on_down = on_down
         self._on_quit = on_quit
         self._fixed_width = self._ctx.config.layout.processes_list_width
+
         self.container = Frame(
             title='Processes',
+            style='class:sidebar',
             width=D(min=self._fixed_width, max=self._fixed_width, weight=1),
             body=Window(
                 content=FormattedTextControl(
@@ -47,7 +51,6 @@ class SideBar:
 
     def _get_formatted_text(self):
         result = []
-        right_padding = 4
         for idx, name in enumerate(self._ctx.tui_state.process_name_list):
             ctx = ProcMuxContext()
             manager = ctx.tui_state.terminal_managers[idx]
@@ -57,20 +60,22 @@ class SideBar:
                 status = "UP"
                 status_fg = f'fg="{ctx.config.style.status_running_color}"'
 
-            target_width = self._fixed_width - right_padding - len(status)
+            target_width = self._fixed_width - self._right_padding - len(status)
             if len(name) > target_width:
                 name = name[0:target_width - 3] + '...'
             name_fixed = f'%{target_width * -1}s' % name
 
             fg_color = f'fg="{ctx.config.style.unselected_process_color}"'
             bg_color = ''
+            pointer_char = " "
             if idx == self._ctx.tui_state.selected_process_idx:
                 result.append([("[SetCursorPosition]", "")])
                 bg_color = f'bg="{ctx.config.style.selected_process_bg_color}"'
                 fg_color = f'fg="{ctx.config.style.selected_process_color}"'
+                pointer_char = "&#9654;"
             result.append(
                 HTML(f'<style {fg_color} {bg_color}>'
-                     f'<bold>{name_fixed}</bold></style>'
+                     f'<bold>{pointer_char}{name_fixed}</bold></style>'
                      f'<style {status_fg} {bg_color}>{status}</style>')
             )
             result.append("\n")

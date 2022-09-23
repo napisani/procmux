@@ -26,9 +26,14 @@ class ProcessConfig:
     shell: Optional[str] = None
     cmd: Optional[List[str]] = None
     cwd: str = os.getcwd()
-    stop: str = "SIGINT"
+    stop: str = "SIGKILL"
     env: Dict[str, Optional[str]] = None
     add_path: Optional[Union[str, List[str]]] = None
+    # end of mproc config points
+
+    description: Optional[str] = "fjkfldsjfdsfdsjkalfjdsaklfds jfdskalfjsdakfdjsaklfjdslakfjdskalfjdskalf dsjaklf dsajfkdsa fdskajfdsklajfkdsljflkdsajfkldsjklfjsdalfjsdakfjsdafjds fjdskalfjdskajfdkslajfkdslajfkldsaj"
+
+
 
     def __post_init__(self):
         self.validate()
@@ -41,7 +46,8 @@ class ProcessConfig:
 @dataclass
 class LayoutConfig:
     hide_help: bool = False
-    processes_list_width: int = 30
+    hide_process_description_panel: bool = False
+    processes_list_width: int = 31
 
 
 @dataclass
