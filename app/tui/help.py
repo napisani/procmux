@@ -20,7 +20,6 @@ class HelpPanel:
         self._focus_manager = focus_manager
         self.container = Window(
             height=1,
-            # style='class:title',
             content=FormattedTextControl(
                 text=self._get_formatted_text,
                 focusable=False,
@@ -43,10 +42,14 @@ class HelpPanel:
             result.append(self._get_key_combo_text(key_config.quit, 'quit'))
             result.append(delimiter)
             result.append(self._get_key_combo_text(key_config.switch_focus, 'switch focus'))
+            result.append(delimiter)
+            result.append(self._get_key_combo_text(key_config.zoom, 'zoom'))
         elif self._focus_manager.get_focused_widget() == FocusWidget.SIDE_BAR_FILTER:
             result.append(self._get_key_combo_text(key_config.submit_filter, 'filter'))
         else:
             result.append(self._get_key_combo_text(key_config.switch_focus, 'switch focus'))
+            result.append(delimiter)
+            result.append(self._get_key_combo_text(key_config.zoom, 'zoom'))
         return merge_formatted_text(result)
 
     def _get_key_combo_text(self, key_combos: List[str], label: str):

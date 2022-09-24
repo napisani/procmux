@@ -26,8 +26,10 @@ class ProcessDescriptionPanel:
         desc = self._ctx.config.procs[name].description
         if not desc:
             desc = ''
+        else:
+            desc = " - " + desc
         result = [
-            HTML(f'<b>{name}</b> - {desc}')
+            HTML(f'<b>{name}</b>{desc}')
         ]
         return merge_formatted_text(result)
 

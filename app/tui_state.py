@@ -17,6 +17,7 @@ class TUIState:
     process_name_list: List[str] = field(default_factory=lambda: [])
     process_status_list: List[bool] = field(default_factory=lambda: [])
     terminal_managers: List[TerminalManager] = field(default_factory=lambda: [])
+    zoomed_in: bool = False
 
     def get_process_index_by_name(self, proc_name):
         if not self._process_name_to_idx:

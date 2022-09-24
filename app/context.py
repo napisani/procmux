@@ -7,6 +7,12 @@ class NeverBootstrapped(Exception):
 
 
 class ProcMuxContext:
+    """
+    ProxMuxContext is a singleton object that acts as a global handle to both
+    shared TUI state and all parsed configuration points
+
+    the ProxMuxContext must be bootstrapped before the TUI app is started
+    """
     def __new__(cls):
         if not hasattr(cls, '_instance'):
             cls._instance = super(ProcMuxContext, cls).__new__(cls)

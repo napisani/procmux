@@ -44,7 +44,6 @@ def _prep_tui_state():
         for proc_name in ctx.tui_state.process_name_list
     ]
     ctx.tui_state.terminal_managers = terminal_managers
-    # ctx.tui_state.focus = FocusWidget.SIDE_BAR
 
 
 def start_tui():
@@ -103,44 +102,37 @@ def start_tui():
             logger.info('in _switch_focus')
             focus_manager.toggle_sidebar_terminal_focus()
 
-    # def after_focus_change(new_focus: FocusWidget):
-    # ctx.tui_state.focus = new_focus
-    # refresh_styles()
+    for keybinding in ctx.config.keybinding.zoom:
+        @kb.add(keybinding)
+        def _zoom(_event):
+            logger.info('in _zoom')
+            focus_manager.toggle_zoom()
 
-    # styles = Style.from_dict({
-    #     'sidebar': 'bold'
-    # })
+    main_layout_container = HSplit([
+        VSplit([
+            side_bar,
+            terminal_wrapper
+
+        ]),
+        ConditionalContainer(content=ProcessDescriptionPanel(),
+                             filter=not ctx.config.layout.hide_process_description_panel),
+        ConditionalContainer(content=HelpPanel(focus_manager=focus_manager),
+                             filter=not ctx.config.layout.hide_help)
+    ])
+
+    def _get_layout_container():
+        if ctx.tui_state.zoomed_in:
+            return _get_current_terminal()
+        return main_layout_container
+
     application = Application(
         layout=Layout(
-            container=HSplit([
-                VSplit([
-                    side_bar,
-                    terminal_wrapper
-
-                ]),
-                ConditionalContainer(content=ProcessDescriptionPanel(),
-                                     filter=not ctx.config.layout.hide_process_description_panel),
-                ConditionalContainer(content=HelpPanel(focus_manager=focus_manager),
-                                     filter=not ctx.config.layout.hide_help)
-            ]),
-            focused_element=side_bar
-        ),
-        # style=DynamicStyle(lambda: styles),
+            container=DynamicContainer(get_container=_get_layout_container),
+            focused_element=side_bar),
         key_bindings=kb,
         full_screen=True,
         mouse_support=False,
     )
-
-    # def refresh_styles():
-    #     nonlocal styles
-    #     if ctx.tui_state.focus == FocusWidget.SIDE_BAR:
-    #         styles = Style.from_dict({
-    #             'sidebar': 'bold'
-    #         })
-    #     else:
-    #         styles = Style.from_dict({
-    #             'sidebar': ''
-    #         })
 
     def refresh_app():
         nonlocal application

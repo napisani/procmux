@@ -14,13 +14,13 @@ class MisconfigurationError(Exception):
 @dataclass
 class ProcessConfig:
     """
-    shell: string - Shell command to run (exactly one of shell or cmd must be provided).
-    cmd: array - Array of command and args to run (exactly one of shell or cmd must be provided).
-    cwd: string - Set working directory for the process. Prefix <CONFIG_DIR> will be replaced with the path of the directory where the config is located.
-    env: object<string, string|null> - Set env variables. Object keys are variable names. Assign variable to null, to clear variables inherited from parent process.
+    shell:(str) command to run (exactly one of shell or cmd must be provided).
+    cmd: (list) Array of command and args to run (exactly one of shell or cmd must be provided).
+    cwd:(str) Set working directory for the process.
+    env: (Dict[str,str]) - Set env variables. Object keys are variable names.
     add_path: string|array - Add entries to the PATH environment variable.
-    autostart: bool - Start process when mprocs starts. Default: true.
-    stop: "SIGINT"|"SIGTERM"|"SIGKILL"|{send-keys: array}|"hard-kill" - A way to stop a process (using x key or when quitting mprocs).
+    autostart: bool - Start process when procmux starts.
+    stop: "SIGINT"|"SIGTERM"|"SIGKILL" - default will SIGKILL
     """
     autostart: bool = False
     shell: Optional[str] = None
@@ -29,8 +29,6 @@ class ProcessConfig:
     stop: str = "SIGKILL"
     env: Dict[str, Optional[str]] = None
     add_path: Optional[Union[str, List[str]]] = None
-    # end of mproc config points
-
     description: Optional[str] = None
 
     def __post_init__(self):
@@ -66,9 +64,10 @@ class KeybindingConfig:
     submit_filter: List[str] = field(default_factory=lambda: ['enter'])
     start: List[str] = field(default_factory=lambda: ['s'])
     stop: List[str] = field(default_factory=lambda: ['x'])
-    up: List[str] = field(default_factory=lambda: ['k', 'up'])
-    down: List[str] = field(default_factory=lambda: ['j', 'down'])
+    up: List[str] = field(default_factory=lambda: ['up', 'k'])
+    down: List[str] = field(default_factory=lambda: ['down', 'j'])
     switch_focus: List[str] = field(default_factory=lambda: ['c-w'])
+    zoom: List[str] = field(default_factory=lambda: ['z'])
 
     def __post_init__(self):
         for keybinding_field in fields(KeybindingConfig):
@@ -99,10 +98,6 @@ class ProcMuxConfig:
             self.keybinding = KeybindingConfig(**self.keybinding)
         if type(self.layout) == dict:
             self.layout = LayoutConfig(**self.layout)
-        self.validate()
-
-    def validate(self):
-        pass
 
 
 def parse_config(config_file: Union[io.TextIOWrapper, io.FileIO, str]) -> ProcMuxConfig:

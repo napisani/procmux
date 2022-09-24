@@ -15,6 +15,8 @@ def _get_config_yaml(log_file: str) -> str:
       hide_help: false
     keybinding:
       switch_focus: 'w' 
+      up: 'k' 
+      down: 'j' 
     procs:
       "tail log":
         shell: "tail -f {log_file}"

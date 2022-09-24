@@ -34,8 +34,37 @@ class FocusManager:
         application = get_app()
         application.layout.focus(element)
 
+    def toggle_zoom(self):
+        zoomed_in = self._ctx.tui_state.zoomed_in
+        if zoomed_in:
+            logger.info('setting zoomed_in to False')
+            self._ctx.tui_state.zoomed_in = False
+        else:
+            success = self.focus_to_terminal()
+            if success:
+                logger.info('setting zoomed_in to True')
+                self._ctx.tui_state.zoomed_in = True
+
+    def focus_to_terminal(self) -> bool:
+        idx = self._ctx.tui_state.selected_process_idx
+        if idx > -1:
+            t_manager = self._ctx.tui_state.terminal_managers[idx]
+            term = t_manager.get_terminal()
+            if term:
+                application = get_app()
+                self._on_terminal_change(term)
+                application.layout.focus(term)
+                logger.info(f'focusing on terminal for idx: {idx} ')
+                return True
+        return False
+
     def toggle_sidebar_terminal_focus(self):
         assert self._on_terminal_change
+        if self._ctx.tui_state.zoomed_in:
+            logger.info('in toggle_sidebar_terminal_focus - currently zoomed in, '
+                        'toggling zoom off instead')
+            self.toggle_zoom()
+            return
         application = get_app()
         idx = self._ctx.tui_state.selected_process_idx
         current_focus = self.get_focused_widget()
@@ -45,9 +74,4 @@ class FocusManager:
             if side_bar:
                 application.layout.focus(side_bar)
         elif current_focus == FocusWidget.SIDE_BAR_SELECT and idx is not None:
-            t_manager = self._ctx.tui_state.terminal_managers[idx]
-            term = t_manager.get_terminal()
-            if term:
-                self._on_terminal_change(term)
-                application.layout.focus(term)
-                logger.info(f'focusing on terminal for idx: {idx} ')
+            self.focus_to_terminal()

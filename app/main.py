@@ -12,7 +12,7 @@ def run_app(cfg: ProcMuxConfig):
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
     ProcMuxContext().bootstrap(cfg)
-    from app.tui import start_tui
+    from app.tui.app import start_tui
     start_tui()
 
 
