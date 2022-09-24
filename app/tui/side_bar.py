@@ -14,6 +14,7 @@ from prompt_toolkit.widgets import Frame
 from app.context import ProcMuxContext
 from app.log import logger
 from app.tui.focus import FocusManager
+from app.tui_state import FocusWidget
 
 
 class SideBar:
@@ -50,6 +51,9 @@ class SideBar:
         self._buffer_control = BufferControl(
             buffer=self._filter_buffer,
             key_bindings=self._get_buffer_input_key_bindings())
+
+        self._focus_manager.register_focusable_element(FocusWidget.SIDE_BAR_FILTER, self._buffer_control)
+        self._focus_manager.register_focusable_element(FocusWidget.SIDE_BAR_SELECT, self._list_control)
 
         def get_filter_container():
             if self._filter_mode or self._filter_buffer.text:
@@ -146,6 +150,8 @@ class SideBar:
         def move(direction: int) -> bool:
             tui_state = self._ctx.tui_state
             filtered_list = self._get_filtered_process_name_list()
+            if not filtered_list:
+                return False
 
             idx_in_main_list = self._ctx.tui_state.selected_process_idx
             if idx_in_main_list == -1:

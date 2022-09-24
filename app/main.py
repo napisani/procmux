@@ -1,15 +1,24 @@
-from app.config import parse_config
+import logging
+
+from app.config import parse_config, ProcMuxConfig
 from app.context import ProcMuxContext
-from args import cli_args, close_open_arg_resources
+from app.log import formatter, logger
 
 
-def run():
-    config = parse_config(cli_args.config)
-    ProcMuxContext().bootstrap(config)
-    close_open_arg_resources()
+def run_app(cfg: ProcMuxConfig):
+    if cfg.log_file:
+        file_handler = logging.FileHandler(cfg.log_file)
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+    ProcMuxContext().bootstrap(cfg)
     from app.tui import start_tui
     start_tui()
 
 
 if __name__ == '__main__':
-    run()
+    from args import cli_args, close_open_arg_resources
+
+    config = parse_config(cli_args.config)
+    close_open_arg_resources()
+    run_app(config)

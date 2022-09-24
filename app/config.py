@@ -85,6 +85,7 @@ class ProcMuxConfig:
     keybinding: KeybindingConfig = KeybindingConfig()
     shell_cmd: List[str] = field(default_factory=lambda: [os.environ['SHELL'], '-c'])
     layout: LayoutConfig = LayoutConfig()
+    log_file: Optional[str] = None
 
     def __post_init__(self):
         if type(self.procs) == dict:
@@ -109,3 +110,7 @@ def parse_config(config_file: Union[io.TextIOWrapper, io.FileIO, str]) -> ProcMu
         return ProcMuxConfig(**yaml.safe_load(config_file))
     with open(config_file, 'r') as f:
         return ProcMuxConfig(**yaml.safe_load(f))
+
+
+def parse_config_from_yaml_string(yaml_config: str) -> ProcMuxConfig:
+    return ProcMuxConfig(**yaml.safe_load(yaml_config))

@@ -5,7 +5,8 @@ from app.exec import TerminalManager
 
 
 class FocusWidget(Enum):
-    SIDE_BAR = auto()
+    SIDE_BAR_FILTER = auto()
+    SIDE_BAR_SELECT = auto()
     TERMINAL = auto()
 
 

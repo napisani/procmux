@@ -1,62 +1,11 @@
 import os
-import pty
 import signal
-import subprocess
 import sys
 from typing import Callable, List, Optional
 
 from ptterm import Terminal
 
-from app.config import ProcessConfig
 from app.log import logger
-
-
-class ProcessNotRunning(Exception):
-    pass
-
-
-class ProcessManager:
-
-    def __init__(self, proc_config: ProcessConfig):
-        self._proc_config = proc_config
-        self._proc: subprocess.Popen = None
-
-    def is_running(self) -> bool:
-        if self._proc and self._proc.pid:
-            if self._proc.returncode:
-                return False
-            return True
-        return False
-
-    def send_stop_signal(self):
-        self._proc.send_signal(getattr(signal, self._proc_config.stop))
-
-    def sync(self):
-        if self.is_running():
-            self._proc.communicate()
-        else:
-            raise ProcessNotRunning('a process that is not running cannot be synced')
-
-    def start(self):
-        kwargs = dict()
-        if self._proc_config.env:
-            kwargs['env'] = self._proc_config.env
-
-        self._proc = subprocess.Popen(
-            args=self._proc_config.shell,
-            shell=(True if self._proc_config.shell else False),
-            cwd=self._proc_config.cwd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            **kwargs
-        )
-
-    def start_pty(self):
-        kwargs = dict()
-        if self._proc_config.env:
-            kwargs['env'] = self._proc_config.env
-        r = pty.spawn(self._proc_config.shell, lambda fd: print(fd), lambda fd: '')
-        print(r)
 
 
 class TerminalManager:
@@ -114,7 +63,7 @@ class TerminalManager:
             cmd = proc_config.cmd
         return cmd
 
-    def is_running(self):
+    def is_running(self) -> bool:
         return self._terminal and self._running
 
     def send_kill_signal(self):
@@ -134,6 +83,7 @@ class TerminalManager:
     def kill(self):
         if self.is_running():
             try:
+                logger.info('running kill()')
                 self._terminal.terminal_control.process.kill()
             except Exception as e:
                 logger.error(f'failed to kill process name: {self._proc_name} {e}')
@@ -146,6 +96,7 @@ class TerminalManager:
 
     def spawn_terminal(self):
         if self.is_running():
+            logger.info(f'spawned - returning existing terminal - {self._terminal}')
             return self._terminal
 
         def before_exec():
@@ -170,6 +121,7 @@ class TerminalManager:
     def autostart_conditionally(self) -> bool:
         proc_config = self._ctx.config.procs[self._proc_name]
         if proc_config.autostart:
+            logger.info(f'autostarting {self._proc_name}')
             self.spawn_terminal()
             return True
         return False

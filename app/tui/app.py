@@ -16,14 +16,12 @@ from app.tui.focus import FocusManager
 from app.tui.help import HelpPanel
 from app.tui.process_description import ProcessDescriptionPanel
 from app.tui.side_bar import SideBar
-from app.tui.terminal import ProcMuxTerminal
-from app.tui_state import FocusWidget
 
 _width_100 = _height_100 = D(preferred=100 * 100)
 
 
 def _create_terminal(cmd: List[str], before_exec: Callable, on_done: Callable) -> Terminal:
-    return ProcMuxTerminal(
+    return Terminal(
         command=cmd,
         width=_width_100,
         height=_height_100,
@@ -35,11 +33,11 @@ def _create_terminal(cmd: List[str], before_exec: Callable, on_done: Callable) -
 def _prep_tui_state():
     ctx = ProcMuxContext()
     if ctx.config.layout.sort_process_list_alpha:
-        ctx.tui_state.process_name_list = sorted(ctx.proc_managers.keys())
+        ctx.tui_state.process_name_list = sorted(ctx.config.procs.keys())
     else:
-        ctx.tui_state.process_name_list = ctx.proc_managers.keys()
+        ctx.tui_state.process_name_list = ctx.config.procs.keys()
     ctx.tui_state.selected_process_name = None
-    if ctx.proc_managers:
+    if ctx.config.procs:
         ctx.tui_state.selected_process_idx = 0
     terminal_managers = [
         TerminalManager(proc_name, _create_terminal)
@@ -91,8 +89,6 @@ def start_tui():
         on_down=_handle_process_focus_changed,
         on_up=_handle_process_focus_changed,
         on_quit=_handle_quit)
-
-    focus_manager.register_side_bar(side_bar)
 
     def _get_current_terminal():
         return current_terminal

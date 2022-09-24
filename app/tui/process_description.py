@@ -20,6 +20,8 @@ class ProcessDescriptionPanel:
 
     def _get_formatted_text(self):
         idx = self._ctx.tui_state.selected_process_idx
+        if idx < 0:
+            return merge_formatted_text([HTML('')])
         name = self._ctx.tui_state.process_name_list[idx]
         desc = self._ctx.config.procs[name].description
         if not desc:

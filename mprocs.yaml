@@ -1,5 +1,6 @@
 layout:
-  hide_help: false 
+  hide_help: false
+log_file: /tmp/term.log
 procs:
   "tail log":
     shell: "tail -f /tmp/term.log"

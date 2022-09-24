@@ -31,7 +31,7 @@ class HelpPanel:
         result = []
         delimiter = " | "
         key_config = self._ctx.config.keybinding
-        if self._focus_manager.get_focused_widget() == FocusWidget.SIDE_BAR:
+        if self._focus_manager.get_focused_widget() == FocusWidget.SIDE_BAR_SELECT:
             result.append(self._get_key_combo_text(key_config.up, 'up'))
             result.append(delimiter)
             result.append(self._get_key_combo_text(key_config.down, 'down'))
@@ -43,6 +43,8 @@ class HelpPanel:
             result.append(self._get_key_combo_text(key_config.quit, 'quit'))
             result.append(delimiter)
             result.append(self._get_key_combo_text(key_config.switch_focus, 'switch focus'))
+        elif self._focus_manager.get_focused_widget() == FocusWidget.SIDE_BAR_FILTER:
+            result.append(self._get_key_combo_text(key_config.submit_filter, 'filter'))
         else:
             result.append(self._get_key_combo_text(key_config.switch_focus, 'switch focus'))
         return merge_formatted_text(result)
