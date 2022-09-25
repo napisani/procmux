@@ -12,10 +12,34 @@ Procmux configuration files can be included in projects that have a series of co
 processes.
 is intended to make it easy for newcomers to a project to browse and run necessary commands, while also reducing the
 need to manually spin up multiple terminal sessions for potentially long-running processes.
-Alternatively, personal or system-wide procmux config files can be defined for browsing/running snippets or commonly used shell
+Alternatively, personal or system-wide procmux config files can be defined for browsing/running snippets or commonly
+used shell
 scripts.
 
 ![Alt Text](https://github.com/napisani/procmux/blob/main/demo.gif)
+
+## Installation
+
+```bash
+# if you use pipx
+pipx install procmux
+
+# if you use pip
+pip install procmux
+
+```
+
+## Usage
+
+```bash
+# standard usage
+procmux --config /path/to/config.yaml
+
+# with overriding config values
+procmux --config /path/to/config.yaml --config-override /path/to/override-file.yaml
+```
+
+## Configuration
 
 Here is a procmux configuration example with ALL available configuration points.
 Only the `procs` section is required, the rest of the properties have defaults predefined:
@@ -115,15 +139,4 @@ procs:
       - 'echo "DONE!"'
     autostart: false
     description: 'run using cmd property'
-```
-
-
-## Usage
-
-```bash
-# standard usage
-procmux --config /path/to/config.yaml
-
-# with overriding config values
-procmux --config /path/to/config.yaml --config-override /path/to/override-file.yaml
 ```
