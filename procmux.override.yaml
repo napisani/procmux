@@ -1,0 +1,33 @@
+layout:
+  # hide or show the help window that show all keybindings and actions at the bottom of the screen
+  hide_help: false
+  # hide or show the window second from the bottom that shows the full command name and the description
+  hide_process_description_panel: true
+  # the prompt_toolkit width of the sidebar (containing all the process names)
+  processes_list_width: 31
+  # whether to sort the process list alphabetically
+  sort_process_list_alpha: False
+
+keybinding:
+  # a map of app actions to their respective key bindings.
+  # each key combo in an action list is an alias for the same action.
+  # IE up is fired when 'j' or the 'up arrow' is pressed
+  # All modifiers for a keybinding should be included in the same list element IE: switch focus - 'c-w' (Control-W)
+  quit:
+    - q
+  filter:
+    - /
+  submit_filter:
+    - enter
+  start:
+    - s
+  stop:
+    - x
+  up:
+    - y
+  down:
+    - h
+  switch_focus:
+    - 'c-w'
+  zoom:
+    - 'z'

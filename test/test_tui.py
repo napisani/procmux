@@ -1,12 +1,11 @@
 import os
 import select
 import tempfile
-from time import sleep
 
 import pyte
 
-from app.config import parse_config_from_yaml_string
-from app.main import run_app
+from app.__main__ import run_app
+from app.config import parse_config
 
 
 def _get_config_yaml(log_file: str) -> str:
@@ -45,11 +44,14 @@ def preform_test_within_tui(keys, assertion):
     pid, f_d = os.forkpty()
     if pid == 0:
         # child process spawns TUI
-        with tempfile.NamedTemporaryFile() as tmp:
-            tmp.write('just a test log file \n to tail during \n unit testing'.encode('utf8'))
-            config_yaml = _get_config_yaml(tmp.name)
-            config = parse_config_from_yaml_string(config_yaml)
-            run_app(config)
+        with tempfile.NamedTemporaryFile() as yaml_tmp:
+            with tempfile.NamedTemporaryFile() as log_tmp:
+                config_yaml = _get_config_yaml(log_tmp.name)
+                yaml_tmp.write(config_yaml.encode('utf8'))
+                yaml_tmp.flush()
+                config = parse_config(yaml_tmp.name)
+                run_app(config)
+
     else:
         screen = pyte.Screen(80, 30)
         stream = pyte.ByteStream(screen)

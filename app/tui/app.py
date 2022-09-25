@@ -33,9 +33,9 @@ def _create_terminal(cmd: List[str], before_exec: Callable, on_done: Callable) -
 def _prep_tui_state():
     ctx = ProcMuxContext()
     if ctx.config.layout.sort_process_list_alpha:
-        ctx.tui_state.process_name_list = sorted(ctx.config.procs.keys())
+        ctx.tui_state.process_name_list = sorted(list(ctx.config.procs.keys()))
     else:
-        ctx.tui_state.process_name_list = ctx.config.procs.keys()
+        ctx.tui_state.process_name_list = list(ctx.config.procs.keys())
     ctx.tui_state.selected_process_name = None
     if ctx.config.procs:
         ctx.tui_state.selected_process_idx = 0

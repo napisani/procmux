@@ -116,3 +116,14 @@ procs:
     autostart: false
     description: 'run using cmd property'
 ```
+
+
+## Usage
+
+```bash
+# standard usage
+procmux --config /path/to/config.yaml
+
+# with overriding config values
+procmux --config /path/to/config.yaml --config-override /path/to/override-file.yaml
+```

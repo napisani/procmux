@@ -1,10 +1,7 @@
-#!/usr/bin/env python
+import hiyapyco
 from dataclasses import dataclass, field, fields
-import io
 import os
-from typing import Dict, List, Optional, Union
-
-import yaml
+from typing import Dict, List, Optional, OrderedDict, Union
 
 
 class MisconfigurationError(Exception):
@@ -87,25 +84,52 @@ class ProcMuxConfig:
     log_file: Optional[str] = None
 
     def __post_init__(self):
-        if type(self.procs) == dict:
+        def is_dict_like(obj):
+            return type(obj) == dict or isinstance(obj, OrderedDict)
+
+        if is_dict_like(self.procs):
             process_config_data = dict()
             for proc_key in self.procs:
                 process_config_data[proc_key] = ProcessConfig(**self.procs[proc_key])
             self.procs = process_config_data
-        if type(self.style) == dict:
+        if is_dict_like(self.style):
             self.style = StyleConfig(**self.style)
-        if type(self.keybinding) == dict:
+        if is_dict_like(self.keybinding):
             self.keybinding = KeybindingConfig(**self.keybinding)
-        if type(self.layout) == dict:
+        if is_dict_like(self.layout):
             self.layout = LayoutConfig(**self.layout)
 
 
-def parse_config(config_file: Union[io.TextIOWrapper, io.FileIO, str]) -> ProcMuxConfig:
-    if isinstance(config_file, io.TextIOWrapper):
-        return ProcMuxConfig(**yaml.safe_load(config_file))
-    with open(config_file, 'r') as f:
-        return ProcMuxConfig(**yaml.safe_load(f))
+def parse_config(config_file: str,
+                 override_config_file: Optional[str] = None) -> ProcMuxConfig:
+    config_files = [config_file]
+    if override_config_file:
+        config_files.append(override_config_file)
+
+    config_dict = hiyapyco.load(*config_files, method=hiyapyco.METHOD_SIMPLE,
+                                failonmissingfiles=True)
+    return ProcMuxConfig(**config_dict)
 
 
-def parse_config_from_yaml_string(yaml_config: str) -> ProcMuxConfig:
-    return ProcMuxConfig(**yaml.safe_load(yaml_config))
+def merge_config_dicts(source: Dict, overrides: Dict, path=None):
+    """merges all overrides into source - the result ends up in the source dict"""
+    if path is None:
+        path = []
+    for key in overrides:
+        if key in source:
+            if isinstance(source[key], dict) and isinstance(overrides[key], dict):
+                merge_config_dicts(source[key], overrides[key], path + [str(key)])
+            elif source[key] == overrides[key]:
+                pass  # same leaf value
+            else:
+                # on conflict, overrides should take precedence
+                # source[key] = overrides[key]
+                pass
+        else:
+            source[key] = overrides[key]
+    return source
+
+
+if __name__ == '__main__':
+    c = parse_config('/Users/nick/code/procmux-tui/procmux.yaml', '/Users/nick/code/procmux-tui/procmux.override.yaml')
+    print(c)

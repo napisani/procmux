@@ -6,3 +6,9 @@ venv
 .idea/
 mobile/.DS_Store
 print_colors.sh
+procmux.egg-info/
+scratch_venv/
+scratch_venv2/
+readme.local.md
+dist/
+build/
