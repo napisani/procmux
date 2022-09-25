@@ -27,6 +27,10 @@ pipx install procmux
 # if you use pip
 pip install procmux
 
+# if you use brew
+brew tap napisani/procmux
+brew install procmux
+
 ```
 
 ## Usage

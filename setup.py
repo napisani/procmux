@@ -6,7 +6,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
     requirements = fh.read()
 setup(
     name='procmux',
-    version='1.0.0',
+    version='1.0.2',
     author='Nick Pisani',
     author_email='napisani@yahoo.com',
     license='MIT',
@@ -17,6 +17,7 @@ setup(
     py_modules=['procmux', 'app'],
     packages=find_packages(),
     install_requires=[requirements],
+    include_package_data=True,  # MANIFEST.in controls inclusions and exclusions
     python_requires='>=3.7',
     classifiers=[
         "Programming Language :: Python :: 3.8",
