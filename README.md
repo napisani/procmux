@@ -7,7 +7,7 @@ this app is heavily influenced by this TUI app: https://github.com/pvolok/mprocs
 ### The goals/use-cases:
 
 procmux allows the user to run multiple commands in parallel and makes it
-easily view the output from each terminal session.
+easy to view the output from each terminal session.
 Procmux configuration files can be included in projects that have a series of commonly used scripts / long-running
 processes.
 is intended to make it easy for newcomers to a project to browse and run necessary commands, while also reducing the
