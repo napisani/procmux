@@ -12,3 +12,4 @@ scratch_venv2/
 readme.local.md
 dist/
 build/
+.pypirc
