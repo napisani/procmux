@@ -53,6 +53,8 @@ class StyleConfig:
     status_running_color: str = 'ansigreen'
     status_stopped_color: str = 'ansired'
     placeholder_terminal_bg_color: str = '#1a1b26'
+    pointer_char: str = '&#9654;'
+    style_classes: Optional[Dict[str, str]] = None
 
 
 @dataclass
@@ -67,6 +69,7 @@ class KeybindingConfig:
     switch_focus: List[str] = field(default_factory=lambda: ['c-w'])
     zoom: List[str] = field(default_factory=lambda: ['z'])
     docs: List[str] = field(default_factory=lambda: ['?'])
+    toggle_scroll: List[str] = field(default_factory=lambda: ['u'])
 
     def __post_init__(self):
         for keybinding_field in fields(KeybindingConfig):
