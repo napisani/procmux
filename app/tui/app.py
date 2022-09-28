@@ -6,6 +6,7 @@ from prompt_toolkit.application import Application
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout import ConditionalContainer, DynamicContainer, HSplit, Layout, VSplit, Window
 from prompt_toolkit.layout.dimension import D
+from prompt_toolkit.styles import Style
 from prompt_toolkit.widgets import Frame
 from ptterm import Terminal
 
@@ -143,6 +144,7 @@ def start_tui():
         key_bindings=kb,
         full_screen=True,
         mouse_support=False,
+        style=Style(list((ctx.config.style.style_classes or {}).items()))
     )
 
     def refresh_app():
