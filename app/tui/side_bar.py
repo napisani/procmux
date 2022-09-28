@@ -121,7 +121,7 @@ class SideBar:
                 result.append([("[SetCursorPosition]", "")])
                 bg_color = f'bg="{ctx.config.style.selected_process_bg_color}"'
                 fg_color = f'fg="{ctx.config.style.selected_process_color}"'
-                pointer_char = "&#9654;"
+                pointer_char = ctx.config.style.pointer_char
             result.append(
                 HTML(f'<style {fg_color} {bg_color}>'
                      f'<bold>{pointer_char}{name_fixed}</bold></style>'
