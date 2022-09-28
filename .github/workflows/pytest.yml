@@ -1,32 +1,32 @@
-# .github/workflows/app.yaml
-name: PyTest
-on: push
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v2
-
-      # Setup Python (faster than using Python container)
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.x"
-
-      - id: cache-pipenv
-        uses: actions/cache@v1
-        with:
-          path: ~/.local/share/virtualenvs
-          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
-
-      - name: Install dependencies
-        if: steps.cache-pipenv.outputs.cache-hit != 'true'
-        run: |
-          pip install -r requirements.txt && pip install -r dev-requirements.txt
-      - name: Run test suite
-        run: |
-          python -m pytest -vv -s
+## .github/workflows/app.yaml
+#name: PyTest
+#on: push
+#
+#jobs:
+#  test:
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 10
+#
+#    steps:
+#      - name: Check out repository code
+#        uses: actions/checkout@v2
+#
+#      # Setup Python (faster than using Python container)
+#      - name: Setup Python
+#        uses: actions/setup-python@v2
+#        with:
+#          python-version: "3.x"
+#
+#      - id: cache-pipenv
+#        uses: actions/cache@v1
+#        with:
+#          path: ~/.local/share/virtualenvs
+#          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+#
+#      - name: Install dependencies
+#        if: steps.cache-pipenv.outputs.cache-hit != 'true'
+#        run: |
+#          pip install -r requirements.txt && pip install -r dev-requirements.txt
+#      - name: Run test suite
+#        run: |
+#          python -m pytest -vv -s
