@@ -70,6 +70,11 @@ def start_tui():
     def _handle_quit():
         application.exit()
 
+    def _handle_toggle_scroll(proc_idx: int):
+        scroll_mode_on = ctx.tui_state.terminal_managers[proc_idx].toggle_scroll_mode()
+        if not scroll_mode_on:
+            focus_manager.focus_to_sidebar()
+
     terminal_placeholder = Window(style=f'bg:{ctx.config.style.placeholder_terminal_bg_color}',
                                   width=_width_100,
                                   height=_height_100)
@@ -107,6 +112,12 @@ def start_tui():
         def _zoom(_event):
             logger.info('in _zoom')
             focus_manager.toggle_zoom()
+
+    for keybinding in ctx.config.keybinding.toggle_scroll:
+        @kb.add(keybinding)
+        def _toggle_scroll(_event) -> None:
+            logger.info('in _toggle_scroll')
+            _handle_toggle_scroll(ctx.tui_state.selected_process_idx)
 
     main_layout_container = HSplit([
         VSplit([

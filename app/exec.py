@@ -22,6 +22,7 @@ class TerminalManager:
         self._proc_name = process_name
         self._terminal: Terminal = None
         self._running = False
+        self._scroll_mode = False
         self._on_done_callbacks = []
         if on_done:
             self._on_done_callbacks = [on_done]
@@ -125,3 +126,12 @@ class TerminalManager:
             self.spawn_terminal()
             return True
         return False
+
+    def toggle_scroll_mode(self) -> bool:
+        if self._scroll_mode:
+            self._terminal.exit_copy_mode()
+            self._scroll_mode = False
+        else:
+            self._terminal.enter_copy_mode()
+            self._scroll_mode = True
+        return self._scroll_mode
