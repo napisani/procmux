@@ -44,12 +44,16 @@ class HelpPanel:
             result.append(self._get_key_combo_text(key_config.switch_focus, 'switch focus'))
             result.append(delimiter)
             result.append(self._get_key_combo_text(key_config.zoom, 'zoom'))
+            result.append(delimiter)
+            result.append(self._get_key_combo_text(key_config.toggle_scroll, 'toggle scroll'))
         elif self._focus_manager.get_focused_widget() == FocusWidget.SIDE_BAR_FILTER:
             result.append(self._get_key_combo_text(key_config.submit_filter, 'filter'))
         else:
             result.append(self._get_key_combo_text(key_config.switch_focus, 'switch focus'))
             result.append(delimiter)
             result.append(self._get_key_combo_text(key_config.zoom, 'zoom'))
+            result.append(delimiter)
+            result.append(self._get_key_combo_text(key_config.toggle_scroll, 'toggle scroll'))
         return merge_formatted_text(result)
 
     def _get_key_combo_text(self, key_combos: List[str], label: str):
