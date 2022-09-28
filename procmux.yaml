@@ -65,6 +65,10 @@ procs:
   "print envs":
     shell: "echo $SOME_TEST"
     description: 'this command will print env vars that are configured in the child pid'
+    docs: |
+      <b>echo an env var set in the child pid</b>
+      <style fg="ansigreen">first an env var is set in the child pid</style>
+      <style fg="ansiblue">then the var is printed</style>
     # environment variables before the command/shell is invoked
     env:
       SOME_TEST: "AAAAAA"

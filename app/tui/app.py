@@ -13,6 +13,7 @@ from ptterm import Terminal
 from app.context import ProcMuxContext
 from app.exec import TerminalManager
 from app.log import logger
+from app.tui.docs import DocsDialog
 from app.tui.focus import FocusManager
 from app.tui.help import HelpPanel
 from app.tui.process_description import ProcessDescriptionPanel
@@ -131,10 +132,19 @@ def start_tui():
         ConditionalContainer(content=HelpPanel(focus_manager=focus_manager),
                              filter=not ctx.config.layout.hide_help)
     ])
+    docs_layout_container = HSplit([
+        DocsDialog(focus_manager),
+        ConditionalContainer(content=ProcessDescriptionPanel(),
+                             filter=not ctx.config.layout.hide_process_description_panel),
+        ConditionalContainer(content=HelpPanel(focus_manager=focus_manager),
+                             filter=not ctx.config.layout.hide_help)
+    ])
 
     def _get_layout_container():
         if ctx.tui_state.zoomed_in:
             return _get_current_terminal()
+        elif ctx.tui_state.docs_open:
+            return docs_layout_container
         return main_layout_container
 
     application = Application(

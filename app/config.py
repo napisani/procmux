@@ -27,6 +27,7 @@ class ProcessConfig:
     env: Dict[str, Optional[str]] = None
     add_path: Optional[Union[str, List[str]]] = None
     description: Optional[str] = None
+    docs: Optional[str] = None
 
     def __post_init__(self):
         self.validate()
@@ -67,6 +68,7 @@ class KeybindingConfig:
     down: List[str] = field(default_factory=lambda: ['down', 'j'])
     switch_focus: List[str] = field(default_factory=lambda: ['c-w'])
     zoom: List[str] = field(default_factory=lambda: ['z'])
+    docs: List[str] = field(default_factory=lambda: ['?'])
     toggle_scroll: List[str] = field(default_factory=lambda: ['u'])
 
     def __post_init__(self):
@@ -112,27 +114,3 @@ def parse_config(config_file: str,
     config_dict = hiyapyco.load(*config_files, method=hiyapyco.METHOD_SIMPLE,
                                 failonmissingfiles=True)
     return ProcMuxConfig(**config_dict)
-
-
-def merge_config_dicts(source: Dict, overrides: Dict, path=None):
-    """merges all overrides into source - the result ends up in the source dict"""
-    if path is None:
-        path = []
-    for key in overrides:
-        if key in source:
-            if isinstance(source[key], dict) and isinstance(overrides[key], dict):
-                merge_config_dicts(source[key], overrides[key], path + [str(key)])
-            elif source[key] == overrides[key]:
-                pass  # same leaf value
-            else:
-                # on conflict, overrides should take precedence
-                # source[key] = overrides[key]
-                pass
-        else:
-            source[key] = overrides[key]
-    return source
-
-
-if __name__ == '__main__':
-    c = parse_config('/Users/nick/code/procmux-tui/procmux.yaml', '/Users/nick/code/procmux-tui/procmux.override.yaml')
-    print(c)
