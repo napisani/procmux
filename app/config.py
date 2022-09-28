@@ -53,6 +53,7 @@ class StyleConfig:
     status_stopped_color: str = 'ansired'
     placeholder_terminal_bg_color: str = '#1a1b26'
     pointer_char: str = '&#9654;'
+    style_classes: Optional[Dict[str, str]] = None
 
 
 @dataclass
