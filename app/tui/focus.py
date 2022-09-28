@@ -39,6 +39,7 @@ class FocusManager:
         if zoomed_in:
             logger.info('setting zoomed_in to False')
             self._ctx.tui_state.zoomed_in = False
+            self.focus_to_sidebar()
         else:
             success = self.focus_to_terminal()
             if success:
@@ -65,13 +66,16 @@ class FocusManager:
                         'toggling zoom off instead')
             self.toggle_zoom()
             return
-        application = get_app()
         idx = self._ctx.tui_state.selected_process_idx
         current_focus = self.get_focused_widget()
         if current_focus == FocusWidget.TERMINAL:
-            logger.info('focusing on sidebar')
-            side_bar = self.get_element_by_focus_widget(FocusWidget.SIDE_BAR_SELECT)
-            if side_bar:
-                application.layout.focus(side_bar)
+            self.focus_to_sidebar()
         elif current_focus == FocusWidget.SIDE_BAR_SELECT and idx is not None:
             self.focus_to_terminal()
+
+    def focus_to_sidebar(self):
+        logger.info('focusing on sidebar')
+        side_bar = self.get_element_by_focus_widget(FocusWidget.SIDE_BAR_SELECT)
+        if side_bar:
+            application = get_app()
+            application.layout.focus(side_bar)
