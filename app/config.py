@@ -52,6 +52,7 @@ class StyleConfig:
     status_running_color: str = 'ansigreen'
     status_stopped_color: str = 'ansired'
     placeholder_terminal_bg_color: str = '#1a1b26'
+    pointer_char: str = '&#9654;'
 
 
 @dataclass

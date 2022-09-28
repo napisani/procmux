@@ -73,6 +73,8 @@ style:
   status_stopped_color: 'ansired'
   #the color of the right panel (terminal panel) when no terminal is created/selected yet
   placeholder_terminal_bg_color: '#1a1b26'
+  #character used to indicate the current selection
+  pointer_char: '&#9654;'
 keybinding:
   # a map of app actions to their respective key bindings.
   # each key combo in an action list is an alias for the same action.
