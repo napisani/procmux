@@ -5,6 +5,7 @@ from typing import List
 from prompt_toolkit.formatted_text import HTML, merge_formatted_text
 from prompt_toolkit.layout import Window
 from prompt_toolkit.layout.controls import FormattedTextControl
+from prompt_toolkit.widgets import Frame
 
 from app.context import ProcMuxContext
 from app.tui.focus import FocusManager
@@ -46,6 +47,8 @@ class HelpPanel:
             result.append(self._get_key_combo_text(key_config.zoom, 'zoom'))
         elif self._focus_manager.get_focused_widget() == FocusWidget.SIDE_BAR_FILTER:
             result.append(self._get_key_combo_text(key_config.submit_filter, 'filter'))
+        elif self._focus_manager.get_focused_widget() == FocusWidget.DOCS:
+            result.append(self._get_key_combo_text(key_config.docs, 'docs'))
         else:
             result.append(self._get_key_combo_text(key_config.switch_focus, 'switch focus'))
             result.append(delimiter)

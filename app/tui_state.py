@@ -8,6 +8,7 @@ class FocusWidget(Enum):
     SIDE_BAR_FILTER = auto()
     SIDE_BAR_SELECT = auto()
     TERMINAL = auto()
+    DOCS = auto()
 
 
 @dataclass
@@ -18,6 +19,7 @@ class TUIState:
     process_status_list: List[bool] = field(default_factory=lambda: [])
     terminal_managers: List[TerminalManager] = field(default_factory=lambda: [])
     zoomed_in: bool = False
+    docs_open: bool = False
 
     def get_process_index_by_name(self, proc_name):
         if not self._process_name_to_idx:

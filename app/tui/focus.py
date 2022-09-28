@@ -45,6 +45,19 @@ class FocusManager:
                 logger.info('setting zoomed_in to True')
                 self._ctx.tui_state.zoomed_in = True
 
+    def toggle_docs_open(self):
+        docs_open = self._ctx.tui_state.docs_open
+        logger.info(f'setting docks_open to {not docs_open}')
+        self._ctx.tui_state.docs_open = not docs_open
+        if self._ctx.tui_state.docs_open:
+            element = self.get_element_by_focus_widget(FocusWidget.DOCS)
+            if element:
+                self.set_focus(element)
+        else:
+            element = self.get_element_by_focus_widget(FocusWidget.SIDE_BAR_SELECT)
+            if element:
+                self.set_focus(element)
+
     def focus_to_terminal(self) -> bool:
         idx = self._ctx.tui_state.selected_process_idx
         if idx > -1:
@@ -60,6 +73,11 @@ class FocusManager:
 
     def toggle_sidebar_terminal_focus(self):
         assert self._on_terminal_change
+        if self._ctx.tui_state.docs_open:
+            logger.info('in toggle_sidebar_terminal_focus - but the docs are open, '
+                        'toggling docs off instead')
+            self.toggle_docs_open()
+            return
         if self._ctx.tui_state.zoomed_in:
             logger.info('in toggle_sidebar_terminal_focus - currently zoomed in, '
                         'toggling zoom off instead')

@@ -215,6 +215,11 @@ class SideBar:
                 self._ctx.tui_state.selected_process_idx = -1
                 self._focus_manager.set_focus(self._buffer_control)
 
+        for keybinding in self._ctx.config.keybinding.docs:
+            @kb.add(keybinding)
+            def _view_docs(_event) -> None:
+                logger.info('in _view_docs')
+                self._focus_manager.toggle_docs_open()
         return kb
 
     def __pt_container__(self):

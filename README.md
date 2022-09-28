@@ -94,6 +94,8 @@ keybinding:
   down:
     - down
     - j
+  docs:
+    - ?
   switch_focus:
     - 'c-w'
   zoom:
@@ -118,6 +120,11 @@ procs:
   "print envs":
     shell: "echo $SOME_TEST"
     description: 'this command will print env vars that are configured in the child pid'
+    #used for showing man page/documentation dialog when the docs keybinding is pressed
+    docs: |
+      <b>echo an env var set in the child pid</b>
+      <style fg="ansigreen">first an env var is set in the child pid</style>
+      <style fg="ansiblue">then the var is printed</style>
     # environment variables before the command/shell is invoked
     env:
       SOME_TEST: "AAAAAA"
@@ -125,6 +132,7 @@ procs:
     shell: "vim"
     autostart: false
     description: 'start vim'
+      
   "long running print":
     shell: "echo 'some text here' && sleep 3 && echo 'still running'  && sleep 3 && echo 'final text'"
     autostart: false
