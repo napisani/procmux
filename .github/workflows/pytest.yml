@@ -29,4 +29,4 @@ jobs:
           pip install -r requirements.txt && pip install -r dev-requirements.txt
       - name: Run test suite
         run: |
-          pipenv run test -v
+          pytest -vv -s
