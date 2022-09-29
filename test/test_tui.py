@@ -91,8 +91,8 @@ def test_tui_shows_process_list_help():
     def assert_process_list_help_bar(screen):
         full_screen = join_screen_to_str(screen)
         assert '<s> start' in full_screen
-        assert '<x> stop' in full_screen
-        assert '<w> switch' in full_screen
+        assert '<x> stop' not in full_screen
+        assert '<q> quit' in full_screen
 
     preform_test_within_tui(keys=[], assertion=assert_process_list_help_bar)
 

@@ -21,6 +21,23 @@ class TUIState:
     zoomed_in: bool = False
     docs_open: bool = False
 
+    @property
+    def selected_process_terminal_manager(self) -> Optional[TerminalManager]:
+        if self.selected_process_idx is not None and self.selected_process_idx > -1:
+            return self.terminal_managers[self.selected_process_idx]
+        return None
+
+    @property
+    def is_selected_process_running(self) -> bool:
+        return self.selected_process_terminal_manager.is_running() \
+            if self.selected_process_terminal_manager else False
+
+    @property
+    def selected_process_has_terminal(self) -> bool:
+        return \
+            self.selected_process_terminal_manager.get_terminal() is not None \
+            if self.selected_process_terminal_manager else False
+
     def get_process_index_by_name(self, proc_name):
         if not self._process_name_to_idx:
             self._process_name_to_idx = {name: idx for idx, name in enumerate(self.process_name_list)}
