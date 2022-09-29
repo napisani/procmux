@@ -154,7 +154,8 @@ def start_tui():
         key_bindings=kb,
         full_screen=True,
         mouse_support=False,
-        style=Style(list((ctx.config.style.style_classes or {}).items()))
+        style=Style(list((ctx.config.style.style_classes or {}).items())),
+        color_depth=ctx.config.style.color_depth
     )
 
     def refresh_app():

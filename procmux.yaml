@@ -26,6 +26,8 @@ style:
   #https://github.com/prompt-toolkit/python-prompt-toolkit/blob/master/src/prompt_toolkit/styles/defaults.py
   style_classes:
     cursor-line: 'underline'
+  #one of: monochrome | ansicolors | 256colors | truecolors
+  color_level: 'truecolors'
 keybinding:
   # a map of app actions to their respective key bindings.
   # each key combo in an action list is an alias for the same action.
