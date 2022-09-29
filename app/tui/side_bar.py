@@ -205,6 +205,8 @@ class SideBar:
             @kb.add(keybinding)
             def _quit(_event) -> None:
                 logger.info('in _quit')
+                if self._ctx.tui_state.quitting:
+                    return
                 for m in self._ctx.tui_state.terminal_managers:
                     m.send_kill_signal()
                 if self._on_quit:

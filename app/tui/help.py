@@ -37,7 +37,7 @@ class HelpPanel:
             result.append(self._get_key_combo_text(key_config.up, 'up'))
             result.append(delimiter)
             result.append(self._get_key_combo_text(key_config.down, 'down'))
-            if not selected_process_running:
+            if not selected_process_running and not self._ctx.tui_state.quitting:
                 result.append(delimiter)
                 result.append(self._get_key_combo_text(key_config.start, 'start'))
             if selected_process_running:

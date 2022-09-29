@@ -20,6 +20,7 @@ class TUIState:
     terminal_managers: List[TerminalManager] = field(default_factory=lambda: [])
     zoomed_in: bool = False
     docs_open: bool = False
+    quitting: bool = False
 
     @property
     def selected_process_terminal_manager(self) -> Optional[TerminalManager]:
@@ -37,6 +38,13 @@ class TUIState:
         return \
             self.selected_process_terminal_manager.get_terminal() is not None \
             if self.selected_process_terminal_manager else False
+
+    @property
+    def has_running_processes(self) -> bool:
+        for tm in self.terminal_managers:
+            if tm.is_running():
+                return True
+        return False
 
     def get_process_index_by_name(self, proc_name):
         if not self._process_name_to_idx:
