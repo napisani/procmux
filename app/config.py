@@ -67,9 +67,9 @@ class KeybindingConfig:
     up: List[str] = field(default_factory=lambda: ['up', 'k'])
     down: List[str] = field(default_factory=lambda: ['down', 'j'])
     switch_focus: List[str] = field(default_factory=lambda: ['c-w'])
-    zoom: List[str] = field(default_factory=lambda: ['z'])
+    zoom: List[str] = field(default_factory=lambda: ['c-z'])
     docs: List[str] = field(default_factory=lambda: ['?'])
-    toggle_scroll: List[str] = field(default_factory=lambda: ['u'])
+    toggle_scroll: List[str] = field(default_factory=lambda: ['c-s'])
 
     def __post_init__(self):
         for keybinding_field in fields(KeybindingConfig):
