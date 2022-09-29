@@ -132,6 +132,7 @@ class TerminalManager:
             self._terminal.exit_copy_mode()
             self._scroll_mode = False
         else:
-            self._terminal.enter_copy_mode()
-            self._scroll_mode = True
+            if self._terminal:
+                self._terminal.enter_copy_mode()
+                self._scroll_mode = True
         return self._scroll_mode
