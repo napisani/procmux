@@ -95,6 +95,12 @@ class TerminalManager:
         for handler in self._on_done_callbacks:
             handler()
 
+    def _handle_process_spawned(self):
+        logger.info(f'created terminal {self._terminal}')
+        self._running = True
+        for handler in self._on_spawn_callbacks:
+            handler()
+
     def spawn_terminal(self):
         if self.is_running():
             logger.info(f'spawned - returning existing terminal - {self._terminal}')
@@ -106,8 +112,7 @@ class TerminalManager:
             self._adjust_path()
 
         self._terminal = self._term_ctor(self.get_cmd(), before_exec, self._handle_process_done)
-        logger.info(f'created terminal {self._terminal}')
-        self._running = True
+        self._handle_process_spawned()
         return self._terminal
 
     def get_terminal(self):
