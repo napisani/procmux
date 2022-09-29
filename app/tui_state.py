@@ -23,7 +23,7 @@ class TUIState:
 
     @property
     def selected_process_terminal_manager(self) -> Optional[TerminalManager]:
-        if self.selected_process_idx:
+        if self.selected_process_idx is not None and self.selected_process_idx > -1:
             return self.terminal_managers[self.selected_process_idx]
         return None
 
