@@ -31,22 +31,27 @@ class HelpPanel:
         result = []
         delimiter = " | "
         key_config = self._ctx.config.keybinding
+        selected_process_running = self._ctx.tui_state.is_selected_process_running
+        selected_process_has_terminal = self._ctx.tui_state.selected_process_has_terminal
         if self._focus_manager.get_focused_widget() == FocusWidget.SIDE_BAR_SELECT:
             result.append(self._get_key_combo_text(key_config.up, 'up'))
             result.append(delimiter)
             result.append(self._get_key_combo_text(key_config.down, 'down'))
-            result.append(delimiter)
-            result.append(self._get_key_combo_text(key_config.start, 'start'))
-            result.append(delimiter)
-            result.append(self._get_key_combo_text(key_config.stop, 'stop'))
+            if not selected_process_running:
+                result.append(delimiter)
+                result.append(self._get_key_combo_text(key_config.start, 'start'))
+            if selected_process_running:
+                result.append(delimiter)
+                result.append(self._get_key_combo_text(key_config.stop, 'stop'))
             result.append(delimiter)
             result.append(self._get_key_combo_text(key_config.quit, 'quit'))
-            result.append(delimiter)
-            result.append(self._get_key_combo_text(key_config.switch_focus, 'switch focus'))
-            result.append(delimiter)
-            result.append(self._get_key_combo_text(key_config.zoom, 'zoom'))
-            result.append(delimiter)
-            result.append(self._get_key_combo_text(key_config.toggle_scroll, 'toggle scroll'))
+            if selected_process_has_terminal:
+                result.append(delimiter)
+                result.append(self._get_key_combo_text(key_config.switch_focus, 'switch focus'))
+                result.append(delimiter)
+                result.append(self._get_key_combo_text(key_config.zoom, 'zoom'))
+                result.append(delimiter)
+                result.append(self._get_key_combo_text(key_config.toggle_scroll, 'toggle scroll'))
         elif self._focus_manager.get_focused_widget() == FocusWidget.SIDE_BAR_FILTER:
             result.append(self._get_key_combo_text(key_config.submit_filter, 'filter'))
         elif self._focus_manager.get_focused_widget() == FocusWidget.DOCS:

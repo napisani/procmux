@@ -105,9 +105,9 @@ keybinding:
   switch_focus:
     - 'c-w'
   zoom:
-    - 'z'
+    - 'c-z'
   toggle_scroll:
-    - 'u'
+    - 'c-s'
 shell_cmd:
   # this is the command used for all 'procs' that are defined with a 'shell' property.
   # by default the configured "$SHELL" environment variable will be used.

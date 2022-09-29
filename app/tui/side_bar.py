@@ -136,7 +136,12 @@ class SideBar:
             @kb.add(keybinding)
             def _exit_filter(_event) -> None:
                 logger.info('in _exit_filter')
-                self._ctx.tui_state.selected_process_idx = -1
+                filtered_list = self._get_filtered_process_name_list()
+                if filtered_list:
+                    self._ctx.tui_state.selected_process_idx = \
+                        self._ctx.tui_state.get_process_index_by_name(filtered_list[0])
+                else:
+                    self._ctx.tui_state.selected_process_idx = -1
                 self._focus_manager.set_focus(self._list_control)
                 self._filter_mode = False
         return kb
