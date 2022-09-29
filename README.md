@@ -106,6 +106,9 @@ keybinding:
     - 'c-w'
   zoom:
     - 'c-z'
+  # using a keybinding of 'disabled' will remove any keybinding entirely
+  #zoom:
+  #  - 'disabled'
   toggle_scroll:
     - 'c-s'
 shell_cmd:
