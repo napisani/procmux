@@ -16,6 +16,7 @@ from app.log import logger
 from app.tui.docs import DocsDialog
 from app.tui.focus import FocusManager
 from app.tui.help import HelpPanel
+from app.tui.keybindings import register_configured_keybinding
 from app.tui.process_description import ProcessDescriptionPanel
 from app.tui.side_bar import SideBar
 
@@ -66,20 +67,12 @@ def start_tui():
         current_terminal = term
 
     def _handle_stop_cmd(proc_idx: int):
-        nonlocal current_terminal
         ctx.tui_state.terminal_managers[proc_idx].send_kill_signal()
 
-    def _handle_quit():
-        application.exit()
-
-    def _handle_toggle_scroll(proc_idx: int):
-        scroll_mode_on = ctx.tui_state.terminal_managers[proc_idx].toggle_scroll_mode()
-        if not scroll_mode_on:
-            focus_manager.focus_to_sidebar()
-
-    terminal_placeholder = Window(style=f'bg:{ctx.config.style.placeholder_terminal_bg_color}',
-                                  width=_width_100,
-                                  height=_height_100)
+    terminal_placeholder = Window(
+        style=f'bg:{ctx.config.style.placeholder_terminal_bg_color}',
+        width=_width_100,
+        height=_height_100)
     current_terminal = terminal_placeholder
 
     def _on_terminal_change(term):
@@ -93,39 +86,18 @@ def start_tui():
         on_start=_handle_cmd_started,
         on_stop=_handle_stop_cmd,
         on_down=_handle_process_focus_changed,
-        on_up=_handle_process_focus_changed,
-        on_quit=_handle_quit)
+        on_up=_handle_process_focus_changed)
 
     def _get_current_terminal():
         return current_terminal
 
     terminal_wrapper = Frame(title='Terminal',
                              body=DynamicContainer(get_container=_get_current_terminal))
-    kb = KeyBindings()
-
-    for keybinding in ctx.config.keybinding.switch_focus:
-        @kb.add(keybinding)
-        def _switch_focus(_event):
-            logger.info('in _switch_focus')
-            focus_manager.toggle_sidebar_terminal_focus()
-
-    for keybinding in ctx.config.keybinding.zoom:
-        @kb.add(keybinding)
-        def _zoom(_event):
-            logger.info('in _zoom')
-            focus_manager.toggle_zoom()
-
-    for keybinding in ctx.config.keybinding.toggle_scroll:
-        @kb.add(keybinding)
-        def _toggle_scroll(_event) -> None:
-            logger.info('in _toggle_scroll')
-            _handle_toggle_scroll(ctx.tui_state.selected_process_idx)
 
     main_layout_container = HSplit([
         VSplit([
             side_bar,
             terminal_wrapper
-
         ]),
         ConditionalContainer(content=ProcessDescriptionPanel(),
                              filter=not ctx.config.layout.hide_process_description_panel),
@@ -151,7 +123,6 @@ def start_tui():
         layout=Layout(
             container=DynamicContainer(get_container=_get_layout_container),
             focused_element=side_bar),
-        key_bindings=kb,
         full_screen=True,
         mouse_support=False,
         style=Style(list((ctx.config.style.style_classes or {}).items()))
