@@ -14,6 +14,7 @@ from prompt_toolkit.widgets import Frame
 from app.context import ProcMuxContext
 from app.log import logger
 from app.tui.focus import FocusManager
+from app.tui.keybindings import register_app_wide_configured_keybindings, register_configured_keybinding
 from app.tui_state import FocusWidget
 
 
@@ -27,7 +28,6 @@ class SideBar:
             on_stop: Optional[Callable[[int], Any]] = None,
             on_up: Optional[Callable[[int], Any]] = None,
             on_down: Optional[Callable[[int], Any]] = None,
-            on_quit: Optional[Callable[[int], Any]] = None,
     ):
         self._focus_manager = focus_manager
         self._ctx = ProcMuxContext()
@@ -35,12 +35,12 @@ class SideBar:
         self._on_stop = on_stop
         self._on_up = on_up
         self._on_down = on_down
-        self._on_quit = on_quit
         self._filter_mode = False
         self._fixed_width = self._ctx.config.layout.processes_list_width
-        self._cached_proc_name_to_filtered_idx = ('',
-                                                  {name: self._ctx.tui_state.get_process_index_by_name(name) for name in
-                                                   self._ctx.tui_state.process_name_list})
+        self._cached_proc_name_to_filtered_idx = (
+            '',
+            {name: self._ctx.tui_state.get_process_index_by_name(name) for name in
+             self._ctx.tui_state.process_name_list})
         self._filter_buffer = Buffer()
         self._list_control = FormattedTextControl(
             text=self._get_formatted_text,
@@ -81,8 +81,31 @@ class SideBar:
     def _get_filtered_process_name_list(self):
         if not self._filter_buffer.text:
             return self._ctx.tui_state.process_name_list
+        prefix = self._ctx.config.layout.category_search_prefix
+
+        def filter_against_category(search_text: str, proc_name: str) -> bool:
+            search_text = search_text[len(prefix):]
+            proc_entry = self._ctx.config.procs[proc_name]
+            if not proc_entry.categories:
+                return False
+            categories = {c.lower() for c in proc_entry.categories}
+            return search_text.lower() in categories
+
+        def filter_against_name_and_meta(search_text: str, proc_name: str) -> bool:
+            proc_entry = self._ctx.config.procs[proc_name]
+            tags = set()
+            if proc_entry.meta_tags:
+                for tag in proc_entry.meta_tags:
+                    tags.add(tag.lower())
+            return search_text.lower() in proc_name or search_text.lower() in tags
+
+        def filter_(search_text: str, proc_name: str) -> bool:
+            if search_text.startswith(prefix):
+                return filter_against_category(search_text, proc_name)
+            return filter_against_name_and_meta(search_text, proc_name)
+
         return [name for name in self._ctx.tui_state.process_name_list if
-                name and self._filter_buffer.text.lower() in name.lower()]
+                name and filter_(self._filter_buffer.text, name)]
 
     def get_filtered_index_for_process_name(self, proc_name) -> int:
         current_filter = ''
@@ -174,59 +197,76 @@ class SideBar:
             self._ctx.tui_state.selected_process_idx = tui_state.get_process_index_by_name(new_process_name)
             return True
 
-        for keybinding in self._ctx.config.keybinding.up:
-            @kb.add(keybinding)
-            def _go_up(_event) -> None:
-                moved = move(up)
-                if moved and self._on_up:
-                    self._on_up(self._ctx.tui_state.selected_process_idx)
+        def _go_up(_event) -> None:
+            moved = move(up)
+            if moved and self._on_up:
+                self._on_up(self._ctx.tui_state.selected_process_idx)
 
-        for keybinding in self._ctx.config.keybinding.down:
-            @kb.add(keybinding)
-            def _go_down(_event) -> None:
-                moved = move(down)
-                if moved and self._on_down:
-                    self._on_down(self._ctx.tui_state.selected_process_idx)
+        kb = register_configured_keybinding('up', _go_up, kb)
 
-        for keybinding in self._ctx.config.keybinding.start:
-            @kb.add(keybinding)
-            def _start(_event) -> None:
-                logger.info('in _start')
-                if self._on_start:
-                    self._on_start(self._ctx.tui_state.selected_process_idx)
-        for keybinding in self._ctx.config.keybinding.stop:
-            @kb.add(keybinding)
-            def _stop(_event) -> None:
-                logger.info('in _stop')
-                if self._on_stop:
-                    self._on_stop(self._ctx.tui_state.selected_process_idx)
+        def _go_down(_event) -> None:
+            moved = move(down)
+            if moved and self._on_down:
+                self._on_down(self._ctx.tui_state.selected_process_idx)
 
-        for keybinding in self._ctx.config.keybinding.quit:
-            @kb.add(keybinding)
-            def _quit(_event) -> None:
-                logger.info('in _quit')
-                if self._ctx.tui_state.quitting:
-                    return
-                for m in self._ctx.tui_state.terminal_managers:
-                    m.send_kill_signal()
-                if self._on_quit:
-                    self._on_quit()
-        for keybinding in self._ctx.config.keybinding.filter:
-            @kb.add(keybinding)
-            def _filter(_event) -> None:
-                logger.info('in _filter')
-                self._filter_mode = True
-                self._filter_buffer.text = ''
-                app = get_app()
-                app.invalidate()
-                self._ctx.tui_state.selected_process_idx = -1
-                self._focus_manager.set_focus(self._buffer_control)
+        kb = register_configured_keybinding('down', _go_down, kb)
 
-        for keybinding in self._ctx.config.keybinding.docs:
-            @kb.add(keybinding)
-            def _view_docs(_event) -> None:
-                logger.info('in _view_docs')
-                self._focus_manager.toggle_docs_open()
+        def _start(_event) -> None:
+            logger.info('in _start')
+            if self._on_start:
+                self._on_start(self._ctx.tui_state.selected_process_idx)
+
+        kb = register_configured_keybinding('start', _start, kb)
+
+        def _stop(_event) -> None:
+            logger.info('in _stop')
+            if self._on_stop:
+                self._on_stop(self._ctx.tui_state.selected_process_idx)
+
+        kb = register_configured_keybinding('stop', _stop, kb)
+
+        def _quit(_event) -> None:
+            logger.info('in _quit')
+            application = get_app()
+
+            def handle_process_done_to_quit():
+                still_running = self._ctx.tui_state.has_running_processes
+                logger.info(f'in handle_process_done_to_quit-  still running:  {still_running}')
+                if not still_running:
+                    application.exit()
+
+            if self._ctx.tui_state.quitting:
+                return  # avoid registering process done handler multiple times
+            self._ctx.tui_state.quitting = True
+            for tm in self._ctx.tui_state.terminal_managers:
+                logger.info('_quit - registered process_done_handler')
+                tm.register_process_done_handler(handle_process_done_to_quit)
+            for tm in self._ctx.tui_state.terminal_managers:
+                logger.info('_quit - sending kill signals')
+                tm.send_kill_signal()
+            if not self._ctx.tui_state.has_running_processes:
+                application.exit()
+
+        kb = register_configured_keybinding('quit', _quit, kb)
+
+        def _filter(_event) -> None:
+            logger.info('in _filter')
+            self._filter_mode = True
+            self._filter_buffer.text = ''
+            app = get_app()
+            app.invalidate()
+            self._ctx.tui_state.selected_process_idx = -1
+            self._focus_manager.set_focus(self._buffer_control)
+
+        kb = register_configured_keybinding('filter', _filter, kb)
+
+        def _view_docs(_event) -> None:
+            logger.info('in _view_docs')
+            self._focus_manager.toggle_docs_open()
+
+        kb = register_configured_keybinding('docs', _view_docs, kb)
+        kb = register_app_wide_configured_keybindings(self._focus_manager, kb)
+
         return kb
 
     def __pt_container__(self):

@@ -60,6 +60,8 @@ layout:
   processes_list_width: 31
   # whether to sort the process list alphabetically
   sort_process_list_alpha: True
+  # used as the prefix for category filters of the process list
+  category_search_prefix: 'cat:'
 style:
   #foreground color of the process in the process list when it is selected
   selected_process_color: 'ansiblack'
@@ -108,6 +110,9 @@ keybinding:
     - 'c-w'
   zoom:
     - 'c-z'
+  # using a keybinding of 'disabled' will remove any keybinding entirely
+  #zoom:
+  #  - 'disabled'
   toggle_scroll:
     - 'c-s'
 shell_cmd:
@@ -127,6 +132,11 @@ procs:
     autostart: true
     # a short description of what this process/command does - will be displayed at the bottom of the screen when selected
     description: 'tail the app log'
+    # meta tags will be searched against for during process filtering
+    # meta tags much match fully (unlike the process name itself, which is fuzzy matched)
+    meta_tags:
+      - "follow"
+      - "-f"
   "print envs":
     shell: "echo $SOME_TEST"
     description: 'this command will print env vars that are configured in the child pid'
@@ -142,6 +152,12 @@ procs:
     shell: "vim"
     autostart: false
     description: 'start vim'
+    # categories can be used to view your process list by single groups using filters formatted
+    # like this: `cat:<category name>` 
+    # IE: `cat:edit` - this will show all processes that have a category 'edit'
+    categories:
+      - "edit"
+    
       
   "long running print":
     shell: "echo 'some text here' && sleep 3 && echo 'still running'  && sleep 3 && echo 'final text'"

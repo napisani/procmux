@@ -21,11 +21,16 @@ def _get_config_yaml(log_file: str) -> str:
         shell: "tail -f {log_file}"
         autostart: true 
         description: 'tail the app log'
+        docs: long description for tail log
+        meta_tags:
+          - 'follow'
       "print envs":
         shell: "echo $SOME_TEST"
         description: 'this command will print env vars that are configured in the child pid'
         env: 
           SOME_TEST: "ENV_VARS_ARE_WORKING"
+        categories:
+          - 'echo'
       "vim":
         shell: "vim"
         autostart: false
@@ -34,6 +39,8 @@ def _get_config_yaml(log_file: str) -> str:
         shell: "echo 'some text here' && sleep 3 && echo 'still running'  && sleep 3 && echo 'final text'"
         autostart: false
         description: 'print a using sleeps in between'
+        categories:
+          - 'echo'
     """
     return config_yaml
 
@@ -135,6 +142,31 @@ def test_tui_filter_for_missing_process_shows_no_results():
         assert 'test long running proc' not in full_screen
 
     preform_test_within_tui(keys=['/', *list('NEVER'), '/', 'j'], assertion=assert_no_results)
+
+def test_tui_filter_against_category():
+    def assert_no_results(screen):
+        full_screen = join_screen_to_str(screen)
+        assert 'test long running proc' in full_screen
+        assert 'print envs' in full_screen
+        assert 'vim' not in full_screen
+
+    preform_test_within_tui(keys=['/', *list('cat:echo'), '/', 'j'], assertion=assert_no_results)
+def test_tui_filter_against_meta_tags():
+    def assert_no_results(screen):
+        full_screen = join_screen_to_str(screen)
+        assert 'test long running proc' not in full_screen
+        assert 'print envs' not in full_screen
+        assert 'vim' not in full_screen
+        assert 'tail log' in full_screen
+
+    preform_test_within_tui(keys=['/', *list('follow'), '/', 'j'], assertion=assert_no_results)
+def test_long_docs_get_displayed():
+    def assert_no_results(screen):
+        full_screen = join_screen_to_str(screen)
+        assert 'long description for tail log' in full_screen
+        assert 'print envs' not in full_screen
+
+    preform_test_within_tui(keys=['/', *list('tail log'), '/', 'j', '?'], assertion=assert_no_results)
 
 
 def test_tui_autostart():

@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from typing import Callable, List
 
 from prompt_toolkit.application import Application
-from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.key_binding import DynamicKeyBindings, KeyBindings
 from prompt_toolkit.layout import ConditionalContainer, DynamicContainer, HSplit, Layout, VSplit, Window
 from prompt_toolkit.layout.dimension import D
 from prompt_toolkit.styles import Style
@@ -16,17 +16,21 @@ from app.log import logger
 from app.tui.docs import DocsDialog
 from app.tui.focus import FocusManager
 from app.tui.help import HelpPanel
+from app.tui.keybindings import register_app_wide_configured_keybindings, register_configured_keybinding
 from app.tui.process_description import ProcessDescriptionPanel
 from app.tui.side_bar import SideBar
+from app.tui.style import height_100, width_100
+from app.tui.terminal import TerminalPanel
+from app.tui_state import FocusWidget
 
-_width_100 = _height_100 = D(preferred=100 * 100)
 
-
-def _create_terminal(cmd: List[str], before_exec: Callable, on_done: Callable) -> Terminal:
+def _create_terminal(cmd: List[str],
+                     before_exec: Callable,
+                     on_done: Callable) -> Terminal:
     return Terminal(
         command=cmd,
-        width=_width_100,
-        height=_height_100,
+        width=width_100,
+        height=height_100,
         style='class:terminal',
         done_callback=on_done,
         before_exec_func=before_exec)
@@ -53,91 +57,23 @@ def start_tui():
 
     ctx = ProcMuxContext()
 
-    def _handle_cmd_started(proc_idx: int):
-        if ctx.tui_state.quitting:
-            return
-        nonlocal current_terminal
-        current_terminal = ctx.tui_state.terminal_managers[proc_idx].spawn_terminal()
-
-    def _handle_process_focus_changed(proc_idx: int):
-        nonlocal current_terminal
-        nonlocal terminal_placeholder
-        term = ctx.tui_state.terminal_managers[proc_idx].get_terminal()
-        if not term:
-            term = terminal_placeholder
-        current_terminal = term
-
-    def _handle_stop_cmd(proc_idx: int):
-        nonlocal current_terminal
-        ctx.tui_state.terminal_managers[proc_idx].send_kill_signal()
-
-    def _handle_quit():
-        if ctx.tui_state.quitting:
-            return  # avoid registering process done handler multiple times
-        ctx.tui_state.quitting = True
-        for tm in ctx.tui_state.terminal_managers:
-            tm.register_process_done_handler(_handle_process_done_to_quit)
-        if not ctx.tui_state.has_running_processes:
-            application.exit()
-
-    def _handle_process_done_to_quit():
-        if not ctx.tui_state.has_running_processes:
-            application.exit()
-
-    def _handle_toggle_scroll(proc_idx: int):
-        scroll_mode_on = ctx.tui_state.terminal_managers[proc_idx].toggle_scroll_mode()
-        if not scroll_mode_on:
-            focus_manager.focus_to_sidebar()
-
-    terminal_placeholder = Window(style=f'bg:{ctx.config.style.placeholder_terminal_bg_color}',
-                                  width=_width_100,
-                                  height=_height_100)
-    current_terminal = terminal_placeholder
-
     def _on_terminal_change(term):
-        nonlocal current_terminal
-        current_terminal = term
+        terminal_wrapper.set_current_terminal(term)
 
     focus_manager = FocusManager(on_terminal_change=_on_terminal_change)
+    terminal_wrapper = TerminalPanel(focus_manager=focus_manager)
 
     side_bar = SideBar(
         focus_manager=focus_manager,
-        on_start=_handle_cmd_started,
-        on_stop=_handle_stop_cmd,
-        on_down=_handle_process_focus_changed,
-        on_up=_handle_process_focus_changed,
-        on_quit=_handle_quit)
-
-    def _get_current_terminal():
-        return current_terminal
-
-    terminal_wrapper = Frame(title='Terminal',
-                             body=DynamicContainer(get_container=_get_current_terminal))
-    kb = KeyBindings()
-
-    for keybinding in ctx.config.keybinding.switch_focus:
-        @kb.add(keybinding)
-        def _switch_focus(_event):
-            logger.info('in _switch_focus')
-            focus_manager.toggle_sidebar_terminal_focus()
-
-    for keybinding in ctx.config.keybinding.zoom:
-        @kb.add(keybinding)
-        def _zoom(_event):
-            logger.info('in _zoom')
-            focus_manager.toggle_zoom()
-
-    for keybinding in ctx.config.keybinding.toggle_scroll:
-        @kb.add(keybinding)
-        def _toggle_scroll(_event) -> None:
-            logger.info('in _toggle_scroll')
-            _handle_toggle_scroll(ctx.tui_state.selected_process_idx)
+        on_start=lambda proc_idx: terminal_wrapper.start_cmd_in_terminal(proc_idx),
+        on_stop=lambda proc_idx: terminal_wrapper.stop_command(proc_idx),
+        on_down=lambda proc_idx: terminal_wrapper.set_terminal_terminal_by_process_idx(proc_idx),
+        on_up=lambda proc_idx: terminal_wrapper.set_terminal_terminal_by_process_idx(proc_idx))
 
     main_layout_container = HSplit([
         VSplit([
             side_bar,
             terminal_wrapper
-
         ]),
         ConditionalContainer(content=ProcessDescriptionPanel(),
                              filter=not ctx.config.layout.hide_process_description_panel),
@@ -154,24 +90,28 @@ def start_tui():
 
     def _get_layout_container():
         if ctx.tui_state.zoomed_in:
-            return _get_current_terminal()
+            return terminal_wrapper.get_current_terminal()
         elif ctx.tui_state.docs_open:
             return docs_layout_container
         return main_layout_container
+
+    def _get_app_keybindings():
+        if focus_manager.get_focused_widget() == FocusWidget.TERMINAL:
+            return terminal_wrapper.get_keybindings()
+        return KeyBindings()
 
     application = Application(
         layout=Layout(
             container=DynamicContainer(get_container=_get_layout_container),
             focused_element=side_bar),
-        key_bindings=kb,
         full_screen=True,
         mouse_support=False,
+        key_bindings=DynamicKeyBindings(get_key_bindings=_get_app_keybindings),
         style=Style(list((ctx.config.style.style_classes or {}).items())),
         color_depth=ctx.config.style.color_depth
     )
 
     def refresh_app():
-        nonlocal application
         application.invalidate()
 
     for manager in ctx.tui_state.terminal_managers:

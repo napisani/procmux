@@ -14,6 +14,9 @@ class FocusManager:
         self._focus_elements = []
         self._on_terminal_change = on_terminal_change
 
+    def is_focused_on_free_form_input(self):
+        return self.get_focused_widget() == FocusWidget.SIDE_BAR_FILTER
+
     def register_focusable_element(self, widget_type: FocusWidget, element):
         self._focus_elements.append((widget_type, element))
 

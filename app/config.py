@@ -1,8 +1,8 @@
-import hiyapyco
 from dataclasses import dataclass, field, fields
 import os
 from typing import Dict, List, Literal, Optional, OrderedDict, Union
 
+import hiyapyco
 from prompt_toolkit.output import ColorDepth
 
 
@@ -30,6 +30,8 @@ class ProcessConfig:
     add_path: Optional[Union[str, List[str]]] = None
     description: Optional[str] = None
     docs: Optional[str] = None
+    categories: Optional[List[str]] = None
+    meta_tags: Optional[List[str]] = None
 
     def __post_init__(self):
         self.validate()
@@ -45,6 +47,7 @@ class LayoutConfig:
     hide_process_description_panel: bool = False
     processes_list_width: int = 31
     sort_process_list_alpha: bool = True
+    category_search_prefix: str = 'cat:'
 
 
 @dataclass
@@ -58,12 +61,13 @@ class StyleConfig:
     pointer_char: str = '&#9654;'
     style_classes: Optional[Dict[str, str]] = None
     color_level: \
-        Optional[Literal['monochrome'] | Literal['ansicolors'] | Literal['256colors'] | Literal['truecolors']] = None
+        Optional[
+            Union[Literal['monochrome'], Literal['ansicolors'], Literal['256colors'], Literal['truecolors']]] = None
 
     @property
     def color_depth(
             self
-    ) -> Literal['DEPTH_1_BIT'] | Literal['DEPTH_4_BIT'] | Literal['DEPTH_8_BIT'] | Literal['DEPTH_24_BIT']:
+    ) -> Union[Literal['DEPTH_1_BIT'], Literal['DEPTH_4_BIT'], Literal['DEPTH_8_BIT'], Literal['DEPTH_24_BIT']]:
         if self.color_level == 'monochrome':
             return ColorDepth.MONOCHROME
         if self.color_level == 'ansicolors':

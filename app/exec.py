@@ -133,11 +133,12 @@ class TerminalManager:
         return False
 
     def toggle_scroll_mode(self) -> bool:
+        if not self._terminal:
+            return self._scroll_mode
         if self._scroll_mode:
             self._terminal.exit_copy_mode()
             self._scroll_mode = False
         else:
-            if self._terminal:
-                self._terminal.enter_copy_mode()
-                self._scroll_mode = True
+            self._terminal.enter_copy_mode()
+            self._scroll_mode = True
         return self._scroll_mode
