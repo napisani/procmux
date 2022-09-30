@@ -107,7 +107,8 @@ def start_tui():
         full_screen=True,
         mouse_support=False,
         key_bindings=DynamicKeyBindings(get_key_bindings=_get_app_keybindings),
-        style=Style(list((ctx.config.style.style_classes or {}).items()))
+        style=Style(list((ctx.config.style.style_classes or {}).items())),
+        color_depth=ctx.config.style.color_depth
     )
 
     def refresh_app():

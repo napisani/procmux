@@ -15,9 +15,9 @@ style:
   #foregroud color of the process in the process list when it is not selected
   unselected_process_color: 'ansiblue'
   #foregroud color of the process list status when the status is RUNNING
-  status_running_color:  'ansigreen'
+  status_running_color: 'ansigreen'
   #foregroud color of the process list status when the status is STOPPED
-  status_stopped_color:  'ansired'
+  status_stopped_color: 'ansired'
   #the color of the right panel (terminal panel) when no terminal is created/selected yet
   placeholder_terminal_bg_color: '#1a1b26'
   #character used to indicate the current selection
@@ -26,6 +26,8 @@ style:
   #https://github.com/prompt-toolkit/python-prompt-toolkit/blob/master/src/prompt_toolkit/styles/defaults.py
   style_classes:
     cursor-line: 'underline'
+  #one of: monochrome | ansicolors | 256colors | truecolors
+  color_level: 'truecolors'
 keybinding:
   # a map of app actions to their respective key bindings.
   # each key combo in an action list is an alias for the same action.

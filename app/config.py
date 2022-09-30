@@ -1,7 +1,9 @@
-import hiyapyco
 from dataclasses import dataclass, field, fields
 import os
-from typing import Dict, List, Optional, OrderedDict, Set, Union
+from typing import Dict, List, Literal, Optional, OrderedDict, Union
+
+import hiyapyco
+from prompt_toolkit.output import ColorDepth
 
 
 class MisconfigurationError(Exception):
@@ -58,6 +60,21 @@ class StyleConfig:
     placeholder_terminal_bg_color: str = '#1a1b26'
     pointer_char: str = '&#9654;'
     style_classes: Optional[Dict[str, str]] = None
+    color_level: \
+        Optional[
+            Union[Literal['monochrome'], Literal['ansicolors'], Literal['256colors'], Literal['truecolors']]] = None
+
+    @property
+    def color_depth(
+            self
+    ) -> Union[Literal['DEPTH_1_BIT'], Literal['DEPTH_4_BIT'], Literal['DEPTH_8_BIT'], Literal['DEPTH_24_BIT']]:
+        if self.color_level == 'monochrome':
+            return ColorDepth.MONOCHROME
+        if self.color_level == 'ansicolors':
+            return ColorDepth.ANSI_COLORS_ONLY
+        if self.color_level == '256colors':
+            return ColorDepth.DEFAULT
+        return ColorDepth.TRUE_COLOR
 
 
 @dataclass

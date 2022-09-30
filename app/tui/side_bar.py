@@ -227,10 +227,25 @@ class SideBar:
 
         def _quit(_event) -> None:
             logger.info('in _quit')
-            for m in self._ctx.tui_state.terminal_managers:
-                m.send_kill_signal()
-            app = get_app()
-            app.exit()
+            application = get_app()
+
+            def handle_process_done_to_quit():
+                still_running = self._ctx.tui_state.has_running_processes
+                logger.info(f'in handle_process_done_to_quit-  still running:  {still_running}')
+                if not still_running:
+                    application.exit()
+
+            if self._ctx.tui_state.quitting:
+                return  # avoid registering process done handler multiple times
+            self._ctx.tui_state.quitting = True
+            for tm in self._ctx.tui_state.terminal_managers:
+                logger.info('_quit - registered process_done_handler')
+                tm.register_process_done_handler(handle_process_done_to_quit)
+            for tm in self._ctx.tui_state.terminal_managers:
+                logger.info('_quit - sending kill signals')
+                tm.send_kill_signal()
+            if not self._ctx.tui_state.has_running_processes:
+                application.exit()
 
         kb = register_configured_keybinding('quit', _quit, kb)
 

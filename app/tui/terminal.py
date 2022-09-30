@@ -24,6 +24,8 @@ class TerminalPanel:
                                 body=DynamicContainer(get_container=lambda: self._current_terminal))
 
     def start_cmd_in_terminal(self, proc_idx: int):
+        if self._ctx.tui_state.quitting:
+            return  # if procmux is in the process of quitting, don't start a new process
         self._current_terminal = self._ctx.tui_state.terminal_managers[proc_idx].spawn_terminal()
 
     def stop_command(self, proc_idx: int):
