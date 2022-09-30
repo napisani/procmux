@@ -67,8 +67,7 @@ def start_tui():
         focus_manager=focus_manager,
         on_start=lambda proc_idx: terminal_wrapper.start_cmd_in_terminal(proc_idx),
         on_stop=lambda proc_idx: terminal_wrapper.stop_command(proc_idx),
-        on_down=lambda proc_idx: terminal_wrapper.set_terminal_terminal_by_process_idx(proc_idx),
-        on_up=lambda proc_idx: terminal_wrapper.set_terminal_terminal_by_process_idx(proc_idx))
+        on_move=lambda proc_idx: terminal_wrapper.set_terminal_terminal_by_process_idx(proc_idx))
 
     main_layout_container = HSplit([
         VSplit([

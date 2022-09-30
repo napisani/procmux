@@ -5,6 +5,8 @@ from typing import Dict, List, Literal, Optional, OrderedDict, Union
 import hiyapyco
 from prompt_toolkit.output import ColorDepth
 
+from app.interpolation import Interpolation, parse_interpolations
+
 
 class MisconfigurationError(Exception):
     pass
@@ -39,6 +41,12 @@ class ProcessConfig:
     def validate(self):
         if not self.cmd and not self.shell:
             raise MisconfigurationError('shell or cmd is required for every proc definition')
+
+    @property
+    def interpolations(self) -> List[Interpolation]:
+        if self.cmd:
+            return parse_interpolations(*self.cmd)
+        return parse_interpolations(self.shell)
 
 
 @dataclass

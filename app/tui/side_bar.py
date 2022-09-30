@@ -26,15 +26,13 @@ class SideBar:
             focus_manager: FocusManager,
             on_start: Optional[Callable[[int], Any]] = None,
             on_stop: Optional[Callable[[int], Any]] = None,
-            on_up: Optional[Callable[[int], Any]] = None,
-            on_down: Optional[Callable[[int], Any]] = None,
+            on_move: Optional[Callable[[int], Any]] = None,
     ):
         self._focus_manager = focus_manager
         self._ctx = ProcMuxContext()
         self._on_start = on_start
         self._on_stop = on_stop
-        self._on_up = on_up
-        self._on_down = on_down
+        self._on_move = on_move
         self._filter_mode = False
         self._fixed_width = self._ctx.config.layout.processes_list_width
         self._cached_proc_name_to_filtered_idx = (
@@ -199,15 +197,15 @@ class SideBar:
 
         def _go_up(_event) -> None:
             moved = move(up)
-            if moved and self._on_up:
-                self._on_up(self._ctx.tui_state.selected_process_idx)
+            if moved and self._on_move:
+                self._on_move(self._ctx.tui_state.selected_process_idx)
 
         kb = register_configured_keybinding('up', _go_up, kb)
 
         def _go_down(_event) -> None:
             moved = move(down)
-            if moved and self._on_down:
-                self._on_down(self._ctx.tui_state.selected_process_idx)
+            if moved and self._on_move:
+                self._on_move(self._ctx.tui_state.selected_process_idx)
 
         kb = register_configured_keybinding('down', _go_down, kb)
 
@@ -238,10 +236,10 @@ class SideBar:
             if self._ctx.tui_state.quitting:
                 return  # avoid registering process done handler multiple times
             self._ctx.tui_state.quitting = True
-            for tm in self._ctx.tui_state.terminal_managers:
+            for idx, proc_name in enumerate(self._ctx.tui_state.process_name_list):
+                tm = self._ctx.tui_state.terminal_managers[idx]
                 logger.info('_quit - registered process_done_handler')
                 tm.register_process_done_handler(handle_process_done_to_quit)
-            for tm in self._ctx.tui_state.terminal_managers:
                 logger.info('_quit - sending kill signals')
                 tm.send_kill_signal()
             if not self._ctx.tui_state.has_running_processes:
