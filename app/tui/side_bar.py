@@ -45,7 +45,7 @@ class SideBar:
              self._ctx.tui_state.process_name_list})
         self._filter_buffer = Buffer()
         self._list_control = FormattedTextControl(
-            text=self._get_formatted_text,
+            text=self._get_text_fragments,
             show_cursor=False,
             focusable=True,
             key_bindings=self._get_selection_key_bindings(),
@@ -122,7 +122,7 @@ class SideBar:
             self._cached_proc_name_to_filtered_idx = (cache_key, proc_name_to_idx)
         return proc_name_to_idx[proc_name]
 
-    def _get_formatted_text(self):
+    def _get_text_fragments(self):
         result = []
         for name in self._get_filtered_process_name_list():
             idx = self._ctx.tui_state.get_process_index_by_name(name)
