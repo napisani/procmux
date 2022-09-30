@@ -54,6 +54,8 @@ def start_tui():
     ctx = ProcMuxContext()
 
     def _handle_cmd_started(proc_idx: int):
+        if ctx.tui_state.quitting:
+            return
         nonlocal current_terminal
         current_terminal = ctx.tui_state.terminal_managers[proc_idx].spawn_terminal()
 
@@ -70,7 +72,17 @@ def start_tui():
         ctx.tui_state.terminal_managers[proc_idx].send_kill_signal()
 
     def _handle_quit():
-        application.exit()
+        if ctx.tui_state.quitting:
+            return  # avoid registering process done handler multiple times
+        ctx.tui_state.quitting = True
+        for tm in ctx.tui_state.terminal_managers:
+            tm.register_process_done_handler(_handle_process_done_to_quit)
+        if not ctx.tui_state.has_running_processes:
+            application.exit()
+
+    def _handle_process_done_to_quit():
+        if not ctx.tui_state.has_running_processes:
+            application.exit()
 
     def _handle_toggle_scroll(proc_idx: int):
         scroll_mode_on = ctx.tui_state.terminal_managers[proc_idx].toggle_scroll_mode()
