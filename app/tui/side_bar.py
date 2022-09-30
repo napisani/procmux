@@ -37,9 +37,10 @@ class SideBar:
         self._on_down = on_down
         self._filter_mode = False
         self._fixed_width = self._ctx.config.layout.processes_list_width
-        self._cached_proc_name_to_filtered_idx = ('',
-                                                  {name: self._ctx.tui_state.get_process_index_by_name(name) for name in
-                                                   self._ctx.tui_state.process_name_list})
+        self._cached_proc_name_to_filtered_idx = (
+            '',
+            {name: self._ctx.tui_state.get_process_index_by_name(name) for name in
+             self._ctx.tui_state.process_name_list})
         self._filter_buffer = Buffer()
         self._list_control = FormattedTextControl(
             text=self._get_formatted_text,
@@ -80,8 +81,31 @@ class SideBar:
     def _get_filtered_process_name_list(self):
         if not self._filter_buffer.text:
             return self._ctx.tui_state.process_name_list
+        prefix = self._ctx.config.layout.category_search_prefix
+
+        def filter_against_category(search_text: str, proc_name: str) -> bool:
+            search_text = search_text[len(prefix):]
+            proc_entry = self._ctx.config.procs[proc_name]
+            if not proc_entry.categories:
+                return False
+            categories = {c.lower() for c in proc_entry.categories}
+            return search_text.lower() in categories
+
+        def filter_against_name_and_meta(search_text: str, proc_name: str) -> bool:
+            proc_entry = self._ctx.config.procs[proc_name]
+            tags = set()
+            if proc_entry.meta_tags:
+                for tag in proc_entry.meta_tags:
+                    tags.add(tag.lower())
+            return search_text.lower() in proc_name or search_text.lower() in tags
+
+        def filter_(search_text: str, proc_name: str) -> bool:
+            if search_text.startswith(prefix):
+                return filter_against_category(search_text, proc_name)
+            return filter_against_name_and_meta(search_text, proc_name)
+
         return [name for name in self._ctx.tui_state.process_name_list if
-                name and self._filter_buffer.text.lower() in name.lower()]
+                name and filter_(self._filter_buffer.text, name)]
 
     def get_filtered_index_for_process_name(self, proc_name) -> int:
         current_filter = ''

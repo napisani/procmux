@@ -1,7 +1,7 @@
 import hiyapyco
 from dataclasses import dataclass, field, fields
 import os
-from typing import Dict, List, Optional, OrderedDict, Union
+from typing import Dict, List, Optional, OrderedDict, Set, Union
 
 
 class MisconfigurationError(Exception):
@@ -28,6 +28,8 @@ class ProcessConfig:
     add_path: Optional[Union[str, List[str]]] = None
     description: Optional[str] = None
     docs: Optional[str] = None
+    categories: Optional[List[str]] = None
+    meta_tags: Optional[List[str]] = None
 
     def __post_init__(self):
         self.validate()
@@ -43,6 +45,7 @@ class LayoutConfig:
     hide_process_description_panel: bool = False
     processes_list_width: int = 31
     sort_process_list_alpha: bool = True
+    category_search_prefix: str = 'cat:'
 
 
 @dataclass

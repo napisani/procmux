@@ -70,6 +70,12 @@ procs:
     autostart: true
     # a short description of what this process/command does - will be displayed at the bottom of the screen when selected
     description: 'tail the app log'
+    meta_tags:
+      - 'follow'
+      - '-f'
+    categories:
+      - 'echo'
+
   "print envs":
     shell: "echo $SOME_TEST"
     description: 'this command will print env vars that are configured in the child pid'
@@ -80,6 +86,10 @@ procs:
     # environment variables before the command/shell is invoked
     env:
       SOME_TEST: "AAAAAA"
+    categories:
+      - 'environment'
+      - 'context'
+      - 'echo'
   "vim":
     shell: "vim"
     autostart: false
@@ -88,12 +98,17 @@ procs:
     shell: "echo 'some text here' && sleep 3 && echo 'still running'  && sleep 3 && echo 'final text'"
     autostart: false
     description: 'print a using sleeps in between'
+    categories:
+      - 'echo'
   "print colors":
     shell: "./print_colors.sh"
     # used to change the directory that the command/process is started from
     cwd: "/Users/nick/code/procmux-tui"
     autostart: false
     description: 'test terminal colors'
+    meta_tags:
+      - 'scheme'
+      - 'rgb'
   "just echo":
     # an example of using a specific CMD list instead of a shell string
     cmd:
@@ -102,3 +117,5 @@ procs:
       - 'echo "DONE!"'
     autostart: false
     description: 'run using cmd property'
+    categories:
+      - 'echo'
