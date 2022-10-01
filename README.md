@@ -62,6 +62,10 @@ layout:
   sort_process_list_alpha: True
   # used as the prefix for category filters of the process list
   category_search_prefix: 'cat:'
+  # the prompt template to be rendered everytime a field replacement input box is rendered
+  # __FIELD_NAME__ will be replaced by the field name defined in the replacement definition 
+  # IE: `echo "<something>"`  # field name is 'something'
+  field_replacement_prompt: '__FIELD_NAME__ ⮕  '
 style:
   #foreground color of the process in the process list when it is selected
   selected_process_color: 'ansiblack'
@@ -178,4 +182,11 @@ procs:
       - 'echo "DONE!"'
     autostart: false
     description: 'run using cmd property'
+  "interpolation":
+    # processes can be defined with replaceable values in this format <field_name:default> or <field_name>
+    # when processes with interpolated values are started, the user will be prompted to enter values for each field.
+    # processes with interpolated values cannot be configured with 'autostart: true' 
+    shell: "echo '<first_echo:some default>' && echo '<second_echo>'"
+    autostart: false 
+    description: 'test interpolation'
 ```

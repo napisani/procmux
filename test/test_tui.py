@@ -15,7 +15,7 @@ def _get_config_yaml(log_file: str) -> str:
     keybinding:
       switch_focus: 'w' 
       up: 'k' 
-      down: 'j' 
+      down: 'j'
     procs:
       "tail log":
         shell: "tail -f {log_file}"
@@ -41,6 +41,11 @@ def _get_config_yaml(log_file: str) -> str:
         description: 'print a using sleeps in between'
         categories:
           - 'echo'
+      "interpolate":
+        shell: "echo '<first_echo:some default>' && echo '<second_echo>'"
+        autostart: false 
+        description: 'test interpolation'
+
     """
     return config_yaml
 
@@ -143,6 +148,7 @@ def test_tui_filter_for_missing_process_shows_no_results():
 
     preform_test_within_tui(keys=['/', *list('NEVER'), '/', 'j'], assertion=assert_no_results)
 
+
 def test_tui_filter_against_category():
     def assert_no_results(screen):
         full_screen = join_screen_to_str(screen)
@@ -151,6 +157,8 @@ def test_tui_filter_against_category():
         assert 'vim' not in full_screen
 
     preform_test_within_tui(keys=['/', *list('cat:echo'), '/', 'j'], assertion=assert_no_results)
+
+
 def test_tui_filter_against_meta_tags():
     def assert_no_results(screen):
         full_screen = join_screen_to_str(screen)
@@ -160,6 +168,8 @@ def test_tui_filter_against_meta_tags():
         assert 'tail log' in full_screen
 
     preform_test_within_tui(keys=['/', *list('follow'), '/', 'j'], assertion=assert_no_results)
+
+
 def test_long_docs_get_displayed():
     def assert_no_results(screen):
         full_screen = join_screen_to_str(screen)
@@ -179,3 +189,4 @@ def test_tui_autostart():
             raise RuntimeError('Active tail log process not found')
 
     preform_test_within_tui(keys=[], assertion=assert_autostart)
+

@@ -56,6 +56,7 @@ class LayoutConfig:
     processes_list_width: int = 31
     sort_process_list_alpha: bool = True
     category_search_prefix: str = 'cat:'
+    field_replacement_prompt: str = '__FIELD_NAME__ ⮕  '
 
 
 @dataclass

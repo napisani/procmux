@@ -123,6 +123,6 @@ procs:
     categories:
       - 'echo'
   "interpolation":
-    shell: "echo <first_echo:some default> && echo <second_echo>"
-    autostart: false
+    shell: "echo '<first_echo:some default>' && echo '<second_echo>'"
+    autostart: false 
     description: 'test interpolation'
