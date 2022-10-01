@@ -99,7 +99,7 @@ procs:
     description: 'start vim'
   "long running print":
     shell: "echo 'some text here' && sleep 3 && echo 'still running'  && sleep 3 && echo 'final text'"
-    autostart: false
+    autostart: true 
     description: 'print a using sleeps in between'
     categories:
       - 'echo'
@@ -122,3 +122,7 @@ procs:
     description: 'run using cmd property'
     categories:
       - 'echo'
+  "interpolation":
+    shell: "echo '<first_echo:some default>' && echo '<second_echo>'"
+    autostart: false 
+    description: 'test interpolation'

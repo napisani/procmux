@@ -5,6 +5,7 @@ from typing import Callable, List, Optional
 
 from ptterm import Terminal
 
+from app.interpolation import interpolate, Interpolation
 from app.log import logger
 
 
@@ -53,15 +54,15 @@ class TerminalManager:
         if proc_config.cwd:
             os.chdir(proc_config.cwd)
 
-    def get_cmd(self) -> List[str]:
+    def get_cmd(self, interpolations: Optional[List[Interpolation]] = None) -> List[str]:
         proc_config = self._ctx.config.procs[self._proc_name]
         shell_cmd = self._ctx.config.shell_cmd
         cmd = []
         if proc_config.shell:
             cmd.extend(shell_cmd)
-            cmd.append(proc_config.shell)
+            cmd.append(interpolate(proc_config.shell, interpolations))
         else:
-            cmd = proc_config.cmd
+            cmd = [interpolate(c, interpolations) for c in proc_config.cmd]
         return cmd
 
     def is_running(self) -> bool:
@@ -101,7 +102,7 @@ class TerminalManager:
         for handler in self._on_spawn_callbacks:
             handler()
 
-    def spawn_terminal(self):
+    def spawn_terminal(self, interpolations: Optional[List[Interpolation]] = None):
         if self.is_running():
             logger.info(f'spawned - returning existing terminal - {self._terminal}')
             return self._terminal
@@ -111,7 +112,7 @@ class TerminalManager:
             self._export_env_vars()
             self._adjust_path()
 
-        self._terminal = self._term_ctor(self.get_cmd(), before_exec, self._handle_process_done)
+        self._terminal = self._term_ctor(self.get_cmd(interpolations), before_exec, self._handle_process_done)
         terminal_index = self._ctx.tui_state.get_process_index_by_name(self._proc_name)
         if terminal_index != self._ctx.tui_state.selected_process_idx:
             logger.info('rendering ptterm in the background, because this terminal is not actively selected')
@@ -132,6 +133,8 @@ class TerminalManager:
         proc_config = self._ctx.config.procs[self._proc_name]
         if proc_config.autostart:
             logger.info(f'autostarting {self._proc_name}')
+            assert not proc_config.interpolations, "processes with autostart enabled, " \
+                                                   "must not have interpolations/field replacements"
             term = self.spawn_terminal()
             terminal_index = self._ctx.tui_state.get_process_index_by_name(self._proc_name)
             if terminal_index == self._ctx.tui_state.selected_process_idx:

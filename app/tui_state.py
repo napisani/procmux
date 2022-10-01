@@ -8,6 +8,7 @@ class FocusWidget(Enum):
     SIDE_BAR_FILTER = auto()
     SIDE_BAR_SELECT = auto()
     TERMINAL = auto()
+    TERMINAL_COMMAND_INPUTS = auto()
     DOCS = auto()
 
 
@@ -37,7 +38,7 @@ class TUIState:
     def selected_process_has_terminal(self) -> bool:
         return \
             self.selected_process_terminal_manager.get_terminal() is not None \
-            if self.selected_process_terminal_manager else False
+                if self.selected_process_terminal_manager else False
 
     @property
     def has_running_processes(self) -> bool:

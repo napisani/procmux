@@ -1,10 +1,15 @@
-from prompt_toolkit.layout import DynamicContainer, Window
-from prompt_toolkit.widgets import Frame
+from typing import List, Optional
+
+from prompt_toolkit.layout import DynamicContainer, HSplit, VSplit, Window
+from prompt_toolkit.widgets import Frame, TextArea
 
 from app.context import ProcMuxContext
+from app.interpolation import Interpolation
+from app.tui.command_form import CommandForm
 from app.tui.focus import FocusManager
 from app.tui.keybindings import register_app_wide_configured_keybindings
 from app.tui.style import height_100, width_100
+from app.tui_state import FocusWidget
 
 
 class TerminalPanel:
@@ -19,14 +24,38 @@ class TerminalPanel:
             width=width_100,
             height=height_100)
         self._current_terminal = self._terminal_placeholder
-
-        self._container = Frame(title='Terminal',
-                                body=DynamicContainer(get_container=lambda: self._current_terminal))
+        self._container = Frame(
+            title='Terminal',
+            body=VSplit([
+                DynamicContainer(get_container=lambda: self._current_terminal),
+            ]))
 
     def start_cmd_in_terminal(self, proc_idx: int):
+        previous_terminal = self._current_terminal
         if self._ctx.tui_state.quitting:
             return  # if procmux is in the process of quitting, don't start a new process
-        self._current_terminal = self._ctx.tui_state.terminal_managers[proc_idx].spawn_terminal()
+        interpolations = CommandForm.get_interpolations_for_process_id(proc_idx)
+
+        def start_cmd(final_interpolations: Optional[List[Interpolation]] = None):
+            terminal_manger = self._ctx.tui_state.terminal_managers[proc_idx]
+            self._current_terminal = terminal_manger.spawn_terminal(final_interpolations)
+            self._focus_manager.focus_to_sidebar()
+
+        def cancel_cmd_input():
+            self._current_terminal = previous_terminal
+            self._focus_manager.focus_to_sidebar()
+
+        if len(interpolations) > 0:
+            form = CommandForm(focus_manager=self._focus_manager,
+                               proc_idx=proc_idx,
+                               on_start=start_cmd,
+                               on_cancel=cancel_cmd_input)
+
+            self._focus_manager.register_focusable_element(FocusWidget.TERMINAL_COMMAND_INPUTS, form)
+            self.set_current_terminal(form)
+            self._focus_manager.set_focus(form)
+            return
+        start_cmd()
 
     def stop_command(self, proc_idx: int):
         self._ctx.tui_state.terminal_managers[proc_idx].send_kill_signal()

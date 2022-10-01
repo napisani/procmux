@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
+from traceback import format_tb
 from typing import Callable, List
 
-from prompt_toolkit.application import Application
+from prompt_toolkit.application import Application, run_coroutine_in_terminal
+from prompt_toolkit.eventloop import get_event_loop, get_traceback_from_context
 from prompt_toolkit.key_binding import DynamicKeyBindings, KeyBindings
 from prompt_toolkit.layout import ConditionalContainer, DynamicContainer, HSplit, Layout, VSplit
 from prompt_toolkit.mouse_events import MouseEvent, MouseEventType
@@ -11,6 +13,7 @@ from ptterm import Terminal
 
 from app.context import ProcMuxContext
 from app.exec import TerminalManager
+from app.log import logger
 from app.tui.docs import DocsDialog
 from app.tui.focus import FocusManager
 from app.tui.help import HelpPanel
@@ -71,8 +74,7 @@ def start_tui():
         focus_manager=focus_manager,
         on_start=lambda proc_idx: terminal_wrapper.start_cmd_in_terminal(proc_idx),
         on_stop=lambda proc_idx: terminal_wrapper.stop_command(proc_idx),
-        on_down=lambda proc_idx: terminal_wrapper.set_terminal_terminal_by_process_idx(proc_idx),
-        on_up=lambda proc_idx: terminal_wrapper.set_terminal_terminal_by_process_idx(proc_idx),
+        on_move=lambda proc_idx: terminal_wrapper.set_terminal_terminal_by_process_idx(proc_idx),
         on_mouse_event=_on_sidebar_mouse_event
     )
 

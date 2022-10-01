@@ -5,6 +5,8 @@ from typing import Dict, List, Literal, Optional, OrderedDict, Union
 import hiyapyco
 from prompt_toolkit.output import ColorDepth
 
+from app.interpolation import Interpolation, parse_interpolations
+
 
 class MisconfigurationError(Exception):
     pass
@@ -40,6 +42,12 @@ class ProcessConfig:
         if not self.cmd and not self.shell:
             raise MisconfigurationError('shell or cmd is required for every proc definition')
 
+    @property
+    def interpolations(self) -> List[Interpolation]:
+        if self.cmd:
+            return parse_interpolations(*self.cmd)
+        return parse_interpolations(self.shell)
+
 
 @dataclass
 class LayoutConfig:
@@ -48,6 +56,7 @@ class LayoutConfig:
     processes_list_width: int = 31
     sort_process_list_alpha: bool = True
     category_search_prefix: str = 'cat:'
+    field_replacement_prompt: str = '__FIELD_NAME__ ⮕  '
 
 
 @dataclass
@@ -82,6 +91,7 @@ class KeybindingConfig:
     quit: List[str] = field(default_factory=lambda: ['q'])
     filter: List[str] = field(default_factory=lambda: ['/'])
     submit_filter: List[str] = field(default_factory=lambda: ['enter'])
+    next_input: List[str] = field(default_factory=lambda: ['tab', 'down'])
     start: List[str] = field(default_factory=lambda: ['s'])
     stop: List[str] = field(default_factory=lambda: ['x'])
     up: List[str] = field(default_factory=lambda: ['up', 'k'])
