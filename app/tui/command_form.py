@@ -23,7 +23,7 @@ class CommandForm:
         self._text_inputs = [
             TextArea(
                 height=1,
-                prompt=f"{interp.field} >>> ",
+                prompt=f"{interp.field} ⮕  ",
                 style="class:input-field",
                 multiline=False,
                 wrap_lines=False,
@@ -36,6 +36,7 @@ class CommandForm:
             start_button,
             cancel_button
         ]
+        self._move_cursors_to_last_character()
         self._container = HSplit([
             *self._text_inputs,
             VSplit([
@@ -47,6 +48,11 @@ class CommandForm:
             height=height_100,
             key_bindings=self._get_keybindings()
         )
+
+    def _move_cursors_to_last_character(self):
+        for ti in self._text_inputs:
+            buff = ti.control.buffer
+            buff.cursor_position = len(buff.document.current_line_after_cursor)
 
     def _get_keybindings(self):
         kb = KeyBindings()
