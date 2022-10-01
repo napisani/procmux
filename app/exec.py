@@ -12,7 +12,7 @@ class TerminalManager:
     def __init__(
             self,
             process_name: str,
-            terminal_ctor: Callable[[List[str]], Terminal],
+            terminal_ctor: Callable[[List[str], Callable, Callable], Terminal],
             on_done: Optional[Callable] = None,
             on_spawn: Optional[Callable] = None
     ):
@@ -129,11 +129,14 @@ class TerminalManager:
     def register_process_spawn_handler(self, on_spawn: Callable):
         self._on_spawn_callbacks.append(on_spawn)
 
-    def autostart_conditionally(self) -> bool:
+    def autostart_conditionally(self, terminal_panel) -> bool:
         proc_config = self._ctx.config.procs[self._proc_name]
         if proc_config.autostart:
             logger.info(f'autostarting {self._proc_name}')
             term = self.spawn_terminal()
+            terminal_index = self._ctx.tui_state.get_process_index_by_name(self._proc_name)
+            if terminal_index == self._ctx.tui_state.selected_process_idx:
+                terminal_panel.set_current_terminal(term)
 
             return True
         return False
