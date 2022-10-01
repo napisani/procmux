@@ -4,11 +4,11 @@ from typing import Any, Callable, Optional
 
 from prompt_toolkit.application import get_app
 from prompt_toolkit.buffer import Buffer
-from prompt_toolkit.formatted_text import HTML, merge_formatted_text
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout import DynamicContainer, HSplit, ScrollbarMargin, Window
 from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.dimension import D, Dimension
+from prompt_toolkit.mouse_events import MouseEvent
 from prompt_toolkit.widgets import Frame
 
 from app.context import ProcMuxContext
@@ -28,6 +28,7 @@ class SideBar:
             on_stop: Optional[Callable[[int], Any]] = None,
             on_up: Optional[Callable[[int], Any]] = None,
             on_down: Optional[Callable[[int], Any]] = None,
+            on_mouse_event: Optional[Callable[[MouseEvent], Any]] = None,
     ):
         self._focus_manager = focus_manager
         self._ctx = ProcMuxContext()
@@ -35,6 +36,7 @@ class SideBar:
         self._on_stop = on_stop
         self._on_up = on_up
         self._on_down = on_down
+        self._on_mouse_event = on_mouse_event if on_mouse_event else lambda _me: NotImplemented
         self._filter_mode = False
         self._fixed_width = self._ctx.config.layout.processes_list_width
         self._cached_proc_name_to_filtered_idx = (
@@ -43,7 +45,7 @@ class SideBar:
              self._ctx.tui_state.process_name_list})
         self._filter_buffer = Buffer()
         self._list_control = FormattedTextControl(
-            text=self._get_formatted_text,
+            text=self._get_text_fragments,
             show_cursor=False,
             focusable=True,
             key_bindings=self._get_selection_key_bindings(),
@@ -120,39 +122,36 @@ class SideBar:
             self._cached_proc_name_to_filtered_idx = (cache_key, proc_name_to_idx)
         return proc_name_to_idx[proc_name]
 
-    def _get_formatted_text(self):
+    def _get_text_fragments(self):
         result = []
         for name in self._get_filtered_process_name_list():
             idx = self._ctx.tui_state.get_process_index_by_name(name)
             ctx = ProcMuxContext()
             manager = ctx.tui_state.terminal_managers[idx]
             status = "DOWN"
-            status_fg = f'fg="{ctx.config.style.status_stopped_color}"'
+            status_fg = ctx.config.style.status_stopped_color
             if manager.is_running():
                 status = "UP"
-                status_fg = f'fg="{ctx.config.style.status_running_color}"'
+                status_fg = ctx.config.style.status_running_color
 
             target_width = self._fixed_width - self._right_padding - len(status)
             if len(name) > target_width:
                 name = name[0:target_width - 3] + '...'
             name_fixed = f'%{target_width * -1}s' % name
 
-            fg_color = f'fg="{ctx.config.style.unselected_process_color}"'
+            fg_color = ctx.config.style.unselected_process_color
             bg_color = ''
             pointer_char = " "
             if idx == self._ctx.tui_state.selected_process_idx:
-                result.append([("[SetCursorPosition]", "")])
-                bg_color = f'bg="{ctx.config.style.selected_process_bg_color}"'
-                fg_color = f'fg="{ctx.config.style.selected_process_color}"'
+                result.append(("[SetCursorPosition]", ""))
+                bg_color = ctx.config.style.selected_process_bg_color
+                fg_color = ctx.config.style.selected_process_color
                 pointer_char = ctx.config.style.pointer_char
-            result.append(
-                HTML(f'<style {fg_color} {bg_color}>'
-                     f'<bold>{pointer_char}{name_fixed}</bold></style>'
-                     f'<style {status_fg} {bg_color}>{status}</style>')
-            )
-            result.append("\n")
+            result.append(( f'fg:{fg_color} bg:{bg_color} bold', f'{pointer_char}{name_fixed}', self._on_mouse_event))
+            result.append(( f'fg:{status_fg} bg:{bg_color} bold', status, self._on_mouse_event))
+            result.append(('', '\n', self._on_mouse_event))
 
-        return merge_formatted_text(result)
+        return result
 
     def _get_buffer_input_key_bindings(self):
         kb = KeyBindings()
