@@ -123,7 +123,7 @@ def start_tui():
     for manager in ctx.tui_state.terminal_managers:
         manager.register_process_done_handler(refresh_app)
         manager.register_process_spawn_handler(refresh_app)
-        manager.autostart_conditionally()
+        manager.autostart_conditionally(terminal_wrapper)
         refresh_app()
 
     application.run()
