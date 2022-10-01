@@ -90,6 +90,7 @@ class KeybindingConfig:
     quit: List[str] = field(default_factory=lambda: ['q'])
     filter: List[str] = field(default_factory=lambda: ['/'])
     submit_filter: List[str] = field(default_factory=lambda: ['enter'])
+    next_input: List[str] = field(default_factory=lambda: ['tab', 'down'])
     start: List[str] = field(default_factory=lambda: ['s'])
     stop: List[str] = field(default_factory=lambda: ['x'])
     up: List[str] = field(default_factory=lambda: ['up', 'k'])

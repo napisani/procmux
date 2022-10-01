@@ -5,6 +5,7 @@ from prompt_toolkit.widgets import Frame, TextArea
 
 from app.context import ProcMuxContext
 from app.interpolation import Interpolation
+from app.tui.command_form import CommandForm
 from app.tui.focus import FocusManager
 from app.tui.keybindings import register_app_wide_configured_keybindings
 from app.tui.style import height_100, width_100
@@ -32,11 +33,9 @@ class TerminalPanel:
     def start_cmd_in_terminal(self, proc_idx: int):
         if self._ctx.tui_state.quitting:
             return  # if procmux is in the process of quitting, don't start a new process
-        proc_name = self._ctx.tui_state.process_name_list[proc_idx]
-        proc = self._ctx.config.procs[proc_name]
-        interpolations = proc.interpolations
+        interpolations = CommandForm.get_interpolations_for_process_id(proc_idx)
         if len(interpolations) > 0:
-            form = self._build_input_form(interpolations)
+            form = self._build_input_form(proc_idx=proc_idx)
             self._focus_manager.register_focusable_element(FocusWidget.TERMINAL_COMMAND_INPUTS, form)
             self.set_current_terminal(form)
             self._focus_manager.set_focus(form)
@@ -45,16 +44,8 @@ class TerminalPanel:
         terminal_manger = self._ctx.tui_state.terminal_managers[proc_idx]
         self._current_terminal = terminal_manger.spawn_terminal()
 
-    def _build_input_form(self, interpolations: List[Interpolation]):
-        return HSplit([
-            TextArea(
-                height=1,
-                prompt=f"{interp.field} >>> ",
-                style="class:input-field",
-                multiline=False,
-                wrap_lines=False,
-            ) for interp in interpolations
-        ])
+    def _build_input_form(self, proc_idx):
+        return CommandForm(proc_idx=proc_idx)
 
     def stop_command(self, proc_idx: int):
         self._ctx.tui_state.terminal_managers[proc_idx].send_kill_signal()
