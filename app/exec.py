@@ -112,6 +112,11 @@ class TerminalManager:
             self._adjust_path()
 
         self._terminal = self._term_ctor(self.get_cmd(), before_exec, self._handle_process_done)
+        terminal_index = self._ctx.tui_state.get_process_index_by_name(self._proc_name)
+        if terminal_index != self._ctx.tui_state.selected_process_idx:
+            logger.info('manually starting process because this terminal is not actively selected')
+            self._terminal.process.start()
+
         self._handle_process_spawned()
         return self._terminal
 
@@ -128,7 +133,8 @@ class TerminalManager:
         proc_config = self._ctx.config.procs[self._proc_name]
         if proc_config.autostart:
             logger.info(f'autostarting {self._proc_name}')
-            self.spawn_terminal()
+            term = self.spawn_terminal()
+
             return True
         return False
 
