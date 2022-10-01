@@ -58,7 +58,7 @@ class StyleConfig:
     status_running_color: str = 'ansigreen'
     status_stopped_color: str = 'ansired'
     placeholder_terminal_bg_color: str = '#1a1b26'
-    pointer_char: str = '&#9654;'
+    pointer_char: str = '▶'
     style_classes: Optional[Dict[str, str]] = None
     color_level: \
         Optional[
@@ -107,6 +107,7 @@ class ProcMuxConfig:
     shell_cmd: List[str] = field(default_factory=lambda: [os.environ['SHELL'], '-c'])
     layout: LayoutConfig = LayoutConfig()
     log_file: Optional[str] = None
+    enable_mouse: bool = True
 
     def __post_init__(self):
         def is_dict_like(obj):

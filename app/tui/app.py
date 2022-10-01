@@ -4,19 +4,16 @@ from typing import Callable, List
 
 from prompt_toolkit.application import Application
 from prompt_toolkit.key_binding import DynamicKeyBindings, KeyBindings
-from prompt_toolkit.layout import ConditionalContainer, DynamicContainer, HSplit, Layout, VSplit, Window
-from prompt_toolkit.layout.dimension import D
+from prompt_toolkit.layout import ConditionalContainer, DynamicContainer, HSplit, Layout, VSplit
+from prompt_toolkit.mouse_events import MouseEvent, MouseEventType
 from prompt_toolkit.styles import Style
-from prompt_toolkit.widgets import Frame
 from ptterm import Terminal
 
 from app.context import ProcMuxContext
 from app.exec import TerminalManager
-from app.log import logger
 from app.tui.docs import DocsDialog
 from app.tui.focus import FocusManager
 from app.tui.help import HelpPanel
-from app.tui.keybindings import register_app_wide_configured_keybindings, register_configured_keybinding
 from app.tui.process_description import ProcessDescriptionPanel
 from app.tui.side_bar import SideBar
 from app.tui.style import height_100, width_100
@@ -63,12 +60,21 @@ def start_tui():
     focus_manager = FocusManager(on_terminal_change=_on_terminal_change)
     terminal_wrapper = TerminalPanel(focus_manager=focus_manager)
 
+    def _on_sidebar_mouse_event(mouse_event: MouseEvent):
+        if mouse_event.event_type == MouseEventType.MOUSE_UP:
+            _, y = mouse_event.position
+            ctx.tui_state.selected_process_idx = y
+            terminal_wrapper.set_terminal_terminal_by_process_idx(y)
+            focus_manager.focus_to_sidebar()
+
     side_bar = SideBar(
         focus_manager=focus_manager,
         on_start=lambda proc_idx: terminal_wrapper.start_cmd_in_terminal(proc_idx),
         on_stop=lambda proc_idx: terminal_wrapper.stop_command(proc_idx),
         on_down=lambda proc_idx: terminal_wrapper.set_terminal_terminal_by_process_idx(proc_idx),
-        on_up=lambda proc_idx: terminal_wrapper.set_terminal_terminal_by_process_idx(proc_idx))
+        on_up=lambda proc_idx: terminal_wrapper.set_terminal_terminal_by_process_idx(proc_idx),
+        on_mouse_event=_on_sidebar_mouse_event
+    )
 
     main_layout_container = HSplit([
         VSplit([
@@ -105,7 +111,7 @@ def start_tui():
             container=DynamicContainer(get_container=_get_layout_container),
             focused_element=side_bar),
         full_screen=True,
-        mouse_support=False,
+        mouse_support=ctx.config.enable_mouse,
         key_bindings=DynamicKeyBindings(get_key_bindings=_get_app_keybindings),
         style=Style(list((ctx.config.style.style_classes or {}).items())),
         color_depth=ctx.config.style.color_depth
