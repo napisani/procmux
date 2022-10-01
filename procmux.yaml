@@ -21,7 +21,7 @@ style:
   #the color of the right panel (terminal panel) when no terminal is created/selected yet
   placeholder_terminal_bg_color: '#1a1b26'
   #character used to indicate the current selection
-  pointer_char: '&#9654;'
+  pointer_char: '▶'
   #override default style classes
   #https://github.com/prompt-toolkit/python-prompt-toolkit/blob/master/src/prompt_toolkit/styles/defaults.py
   style_classes:
@@ -63,6 +63,7 @@ shell_cmd:
 
 # if this property is defined, the app will log all debug, info, error level logs to the designated file
 log_file: /tmp/term.log
+enable_mouse: true
 procs:
   # each key will show up as its own process/script in the process list
   "tail log":
