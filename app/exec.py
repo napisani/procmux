@@ -114,9 +114,8 @@ class TerminalManager:
         self._terminal = self._term_ctor(self.get_cmd(), before_exec, self._handle_process_done)
         terminal_index = self._ctx.tui_state.get_process_index_by_name(self._proc_name)
         if terminal_index != self._ctx.tui_state.selected_process_idx:
-            logger.info('manually starting process because this terminal is not actively selected')
-            self._terminal.process.start()
-
+            logger.info('rendering ptterm in the background, because this terminal is not actively selected')
+            self._terminal.terminal_control.create_content(width=100, height=100)
         self._handle_process_spawned()
         return self._terminal
 
