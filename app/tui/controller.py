@@ -112,15 +112,6 @@ class ProcMuxController:
     def current_terminal_manager(self) -> Optional[TerminalManager]:
         return self._tui_state.current_terminal_manager
 
-    def autostart(self):
-        logger.info('in autostart')
-        for process in self.process_list:
-            if process.config.autostart:
-                logger.info(f'autostarting {process.name}')
-                assert not process.config.interpolations, \
-                    'processes with autostart enabled must not have interpolations/field replacements'
-                self.start_process(process)
-
     def start_process_in_terminal(self, process: Process):
         logger.info('in start process in terminal')
         if self.quitting:
@@ -222,7 +213,7 @@ class ProcMuxController:
             self._tui_state.set_selected_process_by_index(y)
             self.focus_to_sidebar()
 
-    def move(self, direction: int):
+    def move_process_selection(self, direction: int):
         if not self.selected_process:
             self._tui_state.select_first_process()
             return
@@ -242,10 +233,10 @@ class ProcMuxController:
         self._tui_state.set_selected_process_by_index(new_index)
 
     def sidebar_up(self):
-        self.move(-1)
+        self.move_process_selection(-1)
 
     def sidebar_down(self):
-        self.move(1)
+        self.move_process_selection(1)
 
     def start_filter(self):
         logger.info('in start_filter')
@@ -253,7 +244,6 @@ class ProcMuxController:
         self._tui_state.apply_filter('')
         self._tui_state.selected_process = None
         self.focused_widget = FocusWidget.SIDE_BAR_FILTER
-        self.refresh_app()
 
     def update_filter(self, buffer: Buffer):
         logger.info(f'in update filter: {buffer.text}')
@@ -322,6 +312,15 @@ class ProcMuxController:
                 self.focus_to_sidebar()
 
     # /Scroll
+
+    def autostart(self):
+        logger.info('in autostart')
+        for process in self.process_list:
+            if process.config.autostart:
+                logger.info(f'autostarting {process.name}')
+                assert not process.config.interpolations, \
+                    'processes with autostart enabled must not have interpolations/field replacements'
+                self.start_process(process)
 
     def quit(self):
         logger.info('in quit')

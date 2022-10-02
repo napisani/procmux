@@ -36,7 +36,7 @@ class TUIState:
         self.process_list: List[Process] = self._create_process_list(self.config.procs)
         self.filtered_process_list: List[Process] = self.process_list
         self.selected_process: Optional[Process] = self.filtered_process_list[0] if self.filtered_process_list else None
-        self.terminal_managers: Dict[int, TerminalManager] = self.create_terminal_managers(self.process_list)
+        self.terminal_managers: Dict[int, TerminalManager] = self._create_terminal_managers(self.process_list)
         self._filter: str = ''
         self.focus_elements: List[Tuple[FocusWidget, Any]] = []
         self.zoomed_in: bool = False
@@ -84,7 +84,7 @@ class TUIState:
             return sorted(ps, key=lambda p: p.name)
         return ps
 
-    def create_terminal_managers(self, process_list: List[Process]) -> Dict[int, TerminalManager]:
+    def _create_terminal_managers(self, process_list: List[Process]) -> Dict[int, TerminalManager]:
         tms = {}
         for process in process_list:
             tms[process.index] = TerminalManager(self.config, process.config, process.index, process.name)

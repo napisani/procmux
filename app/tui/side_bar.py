@@ -99,20 +99,27 @@ class SideBar:
             self._controller.config.keybinding.submit_filter, on_exit_filter, kb)
 
     def _get_selection_key_bindings(self):
-        kb = register_configured_keybinding_no_event(
-            self._controller.config.keybinding.up, self._controller.sidebar_up, KeyBindings())
-        kb = register_configured_keybinding_no_event(
-            self._controller.config.keybinding.down, self._controller.sidebar_down, kb)
-        kb = register_configured_keybinding_no_event(
-            self._controller.config.keybinding.start, self._controller.start_process, kb)
-        kb = register_configured_keybinding_no_event(
-            self._controller.config.keybinding.stop, self._controller.stop_process, kb)
-        kb = register_configured_keybinding_no_event(
-            self._controller.config.keybinding.quit, self._controller.quit, kb)
-        kb = register_configured_keybinding_no_event(
-            self._controller.config.keybinding.filter, self._controller.start_filter, kb)
-        kb = register_configured_keybinding_no_event(
-            self._controller.config.keybinding.docs, self._controller.view_docs, kb)
+        kb = register_configured_keybinding_no_event(self._controller.config.keybinding.up,
+                                                     self._controller.sidebar_up,
+                                                     KeyBindings())
+        kb = register_configured_keybinding_no_event(self._controller.config.keybinding.down,
+                                                     self._controller.sidebar_down,
+                                                     kb)
+        kb = register_configured_keybinding_no_event(self._controller.config.keybinding.start,
+                                                     self._controller.start_process,
+                                                     kb)
+        kb = register_configured_keybinding_no_event(self._controller.config.keybinding.stop,
+                                                     self._controller.stop_process,
+                                                     kb)
+        kb = register_configured_keybinding_no_event(self._controller.config.keybinding.quit,
+                                                     self._controller.quit,
+                                                     kb)
+        kb = register_configured_keybinding_no_event(self._controller.config.keybinding.filter,
+                                                     self._controller.start_filter,
+                                                     kb)
+        kb = register_configured_keybinding_no_event(self._controller.config.keybinding.docs,
+                                                     self._controller.view_docs,
+                                                     kb)
         kb = register_app_wide_configured_keybindings(self._controller.config,
                                                       self._controller.switch_focus,
                                                       self._controller.zoom,
