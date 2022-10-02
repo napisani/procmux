@@ -14,23 +14,17 @@ from app.tui.state import FocusWidget
 
 
 class SideBar:
-    _buffer_control: BufferControl
-    _container: Frame
-    _controller: ProcMuxController
-    _filter_buffer: Buffer
-    _fixed_width: int
-    _list_control: FormattedTextControl
-    _right_padding = 5
+    _right_padding: int = 5
 
     def __init__(self, controller: ProcMuxController):
-        self._controller = controller
-        self._fixed_width = self._controller.config.layout.processes_list_width
+        self._controller: ProcMuxController = controller
+        self._fixed_width: int = self._controller.config.layout.processes_list_width
 
-        self._filter_buffer = Buffer(on_text_changed=self._controller.update_filter)
-        self._buffer_control = BufferControl(
+        self._filter_buffer: Buffer = Buffer(on_text_changed=self._controller.update_filter)
+        self._buffer_control: BufferControl = BufferControl(
             buffer=self._filter_buffer,
             key_bindings=self._get_buffer_input_key_bindings())
-        self._list_control = FormattedTextControl(
+        self._list_control: FormattedTextControl = FormattedTextControl(
             text=self._get_text_fragments,
             show_cursor=False,
             focusable=True,
@@ -40,7 +34,7 @@ class SideBar:
         self._controller.register_focusable_element(FocusWidget.SIDE_BAR_FILTER, self._buffer_control)
         self._controller.register_focusable_element(FocusWidget.SIDE_BAR_SELECT, self._list_control)
 
-        self._container = Frame(
+        self._container: Frame = Frame(
             title='Processes',
             style='class:sidebar',
             width=D(min=self._fixed_width, max=self._fixed_width, weight=1),

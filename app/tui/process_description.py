@@ -10,12 +10,9 @@ from app.tui.controller import ProcMuxController
 
 
 class ProcessDescriptionPanel:
-    _container: Window
-    _controller: ProcMuxController
-
     def __init__(self, controller: ProcMuxController):
-        self._controller = controller
-        self._container = Window(
+        self._controller: ProcMuxController = controller
+        self._container: Window = Window(
             height=1,
             content=FormattedTextControl(
                 text=self._get_formatted_text,

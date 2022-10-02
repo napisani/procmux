@@ -27,37 +27,24 @@ class Process:
 
 
 class TUIState:
-    config: ProcMuxConfig
-
-    process_list: List[Process]
-    selected_process: Optional[Process] = None
-
-    terminal_managers: Dict[int, TerminalManager] = {}
-
-    _filter: str = ''
-    filtered_process_list: List[Process]
-
-    focus_elements: List[Tuple[FocusWidget, Any]] = []
-
-    zoomed_in: bool = False
-    filter_mode: bool = False
-    docs_open: bool = False
-    quitting: bool = False
-    interpolating: bool = False
-
-    _command_form: Optional[Any]
-    _terminal_placeholder: Window
-
     def __init__(self, config: ProcMuxConfig):
-        self.config = config
-        self._terminal_placeholder = Window(
+        self.config: ProcMuxConfig = config
+        self._terminal_placeholder: Window = Window(
             style=f'bg:{self.config.style.placeholder_terminal_bg_color}',
             width=self.config.style.width_100,
             height=self.config.style.height_100)
-        self._set_process_list(self.config.procs)
-        self.filtered_process_list = self.process_list
-        self.create_terminal_managers()
-        self.select_first_process()
+        self.process_list: List[Process] = self._create_process_list(self.config.procs)
+        self.filtered_process_list: List[Process] = self.process_list
+        self.selected_process: Optional[Process] = self.filtered_process_list[0] if self.filtered_process_list else None
+        self.terminal_managers: Dict[int, TerminalManager] = self.create_terminal_managers(self.process_list)
+        self._filter: str = ''
+        self.focus_elements: List[Tuple[FocusWidget, Any]] = []
+        self.zoomed_in: bool = False
+        self.filter_mode: bool = False
+        self.docs_open: bool = False
+        self.quitting: bool = False
+        self.interpolating: bool = False
+        self._command_form: Optional[Any] = None
 
     @property
     def current_terminal_manager(self) -> Optional[TerminalManager]:
@@ -88,19 +75,20 @@ class TUIState:
         if self.filtered_process_list and index >= 0 and index < len(self.filtered_process_list):
             self.selected_process = self.filtered_process_list[index]
 
-    def _set_process_list(self, process_config: Dict[str, ProcessConfig]):
-        self.process_list = self._sort_process_list(
+    def _create_process_list(self, process_config: Dict[str, ProcessConfig]) -> List[Process]:
+        return self._sort_process_list(
             [Process(ix, pc, n) for ix, (n, pc) in enumerate(process_config.items())])
 
-    def _sort_process_list(self, ps: List[Process]):
+    def _sort_process_list(self, ps: List[Process]) -> List[Process]:
         if self.config.layout.sort_process_list_alpha:
             return sorted(ps, key=lambda p: p.name)
         return ps
 
-    def create_terminal_managers(self):
-        for process in self.process_list:
-            self.terminal_managers[process.index] = \
-                TerminalManager(self.config, process.config, process.index, process.name)
+    def create_terminal_managers(self, process_list: List[Process]) -> Dict[int, TerminalManager]:
+        tms = {}
+        for process in process_list:
+            tms[process.index] = TerminalManager(self.config, process.config, process.index, process.name)
+        return tms
 
     def apply_filter(self, filter_text: str):
         self._filter = filter_text

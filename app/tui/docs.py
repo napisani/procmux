@@ -12,12 +12,9 @@ from app.tui.state import FocusWidget
 
 
 class DocsDialog:
-    _container: Frame
-    _controller: ProcMuxController
-
     def __init__(self, controller: ProcMuxController):
-        self._controller = controller
-        self._container = Frame(
+        self._controller: ProcMuxController = controller
+        self._container: Frame = Frame(
             title=self._get_title,
             key_bindings=self._get_key_bindings(),
             body=Window(

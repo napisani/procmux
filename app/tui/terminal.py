@@ -8,12 +8,9 @@ from app.tui.keybindings import register_app_wide_configured_keybindings
 
 
 class TerminalPanel:
-    _container: Frame
-    _controller: ProcMuxController
-
     def __init__(self, controller: ProcMuxController):
-        self._controller = controller
-        self._container = Frame(
+        self._controller: ProcMuxController = controller
+        self._container: Frame = Frame(
             title='Terminal',
             body=VSplit([
                 DynamicContainer(get_container=lambda: self._controller.current_terminal),

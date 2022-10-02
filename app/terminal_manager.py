@@ -11,25 +11,20 @@ from app.log import logger
 
 
 class TerminalManager:
-    _config: ProcMuxConfig
-    _on_process_done_handlers: List[Callable[[int], None]] = []
-    _process_config: ProcessConfig
-    _process_index: int
-    _process_name: str
-    _running: bool = False
-    _scroll_mode: bool = False
-    _terminal: Optional[Terminal] = None
-
     def __init__(self,
                  config: ProcMuxConfig,
                  process_config: ProcessConfig,
                  process_index: int,
                  process_name: str
                  ):
-        self._config = config
-        self._process_config = process_config
-        self._process_index = process_index
-        self._process_name = process_name
+        self._config: ProcMuxConfig = config
+        self._process_config: ProcessConfig = process_config
+        self._process_index: int = process_index
+        self._process_name: str = process_name
+        self._on_process_done_handlers: List[Callable[[int], None]] = []
+        self._running = False
+        self._scroll_mode = False
+        self._terminal: Optional[Terminal] = None
 
     @property
     def terminal(self) -> Optional[Terminal]:

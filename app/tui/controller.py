@@ -21,11 +21,9 @@ state changes with registered handlers
 
 
 class ProcMuxController:
-    _tui_state: TUIState
-    _on_scroll_mode_changed_handlers: List[Callable[[int, bool], None]] = []
-
     def __init__(self, tui_state: TUIState, command_form_ctor):
-        self._tui_state = tui_state
+        self._tui_state: TUIState = tui_state
+        self._on_scroll_mode_changed_handlers: List[Callable[[int, bool], None]] = []
         self._command_form_ctor = command_form_ctor
         for tm in self._tui_state.terminal_managers.values():
             tm.register_on_process_done_handler(self.on_process_done)
