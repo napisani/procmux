@@ -21,6 +21,7 @@ class TerminalManager:
         self._process_config: ProcessConfig = process_config
         self._process_index: int = process_index
         self._process_name: str = process_name
+        self._on_process_spawned_handlers: List[Callable[[int], None]] = []
         self._on_process_done_handlers: List[Callable[[int], None]] = []
         self._running = False
         self._scroll_mode = False
@@ -95,6 +96,8 @@ class TerminalManager:
     def _handle_process_spawned(self):
         logger.info(f'created terminal {self._terminal} for process {self._process_name}')
         self._running = True
+        for handler in self._on_process_spawned_handlers:
+            handler(self._process_index)
 
     def spawn_terminal(self, run_in_background: bool, interpolations: Optional[List[Interpolation]] = None):
         logger.info(f'in spawn terminal for process {self._process_name}')
@@ -126,6 +129,9 @@ class TerminalManager:
                 self._terminal.enter_copy_mode()
             else:
                 self._terminal.exit_copy_mode()
+
+    def register_on_process_spawned_handler(self, handler: Callable[[int], None]):
+        self._on_process_spawned_handlers.append(handler)
 
     def register_on_process_done_handler(self, handler: Callable[[int], None]):
         self._on_process_done_handlers.append(handler)

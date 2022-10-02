@@ -23,9 +23,10 @@ state changes with registered handlers
 class ProcMuxController:
     def __init__(self, tui_state: TUIState, command_form_ctor):
         self._tui_state: TUIState = tui_state
-        self._on_scroll_mode_changed_handlers: List[Callable[[int, bool], None]] = []
         self._command_form_ctor = command_form_ctor
+        self._on_scroll_mode_changed_handlers: List[Callable[[int, bool], None]] = []
         for tm in self._tui_state.terminal_managers.values():
+            tm.register_on_process_spawned_handler(self.on_process_spawned)
             tm.register_on_process_done_handler(self.on_process_done)
             self.register_scroll_mode_change_handler(tm.on_scroll_mode_change)
 
@@ -94,12 +95,22 @@ class ProcMuxController:
         if self.current_terminal_manager:
             self.current_terminal_manager.send_kill_signal()
 
+    def on_process_spawned(self, index: int):
+        logger.info('in on process spawned')
+        for process in self.process_list:
+            if process.index == index:
+                logger.info(f'process {process.name} spawned')
+                process.running = True
+
     def on_process_done(self, index: int):
         logger.info('in on process done')
         for process in self.process_list:
             if process.index == index:
                 logger.info(f'process {process.name} done')
                 process.running = False
+                if self.quitting and not self._tui_state.has_running_processes:
+                    self._quit()
+                self.refresh_app()
 
     # /Processes
 
@@ -335,6 +346,11 @@ class ProcMuxController:
         for tm in self._tui_state.terminal_managers.values():
             tm.send_kill_signal()
         if not self._tui_state.has_running_processes:
+            application.exit()
+
+    def _quit(self):
+        application = get_app()
+        if application:
             application.exit()
 
     def refresh_app(self):
