@@ -34,5 +34,3 @@ def interpolate(text: str, interpolations: Optional[List[Interpolation]] = None)
         text = re.sub(replace_regex, interp.value, text)
 
     return text
-
-

@@ -1,16 +1,21 @@
 from __future__ import unicode_literals
+from typing import Callable
 
 from prompt_toolkit.formatted_text import HTML, merge_formatted_text
+from prompt_toolkit.formatted_text.base import FormattedText
 from prompt_toolkit.layout import Window
 from prompt_toolkit.layout.controls import FormattedTextControl
 
-from app.context import ProcMuxContext
+from app.tui.controller import ProcMuxController
 
 
 class ProcessDescriptionPanel:
-    def __init__(self):
-        self._ctx = ProcMuxContext()
-        self.container = Window(
+    _container: Window
+    _controller: ProcMuxController
+
+    def __init__(self, controller: ProcMuxController):
+        self._controller = controller
+        self._container = Window(
             height=1,
             content=FormattedTextControl(
                 text=self._get_formatted_text,
@@ -18,20 +23,13 @@ class ProcessDescriptionPanel:
                 show_cursor=False
             ))
 
-    def _get_formatted_text(self):
-        idx = self._ctx.tui_state.selected_process_idx
-        if idx < 0:
+    def _get_formatted_text(self) -> Callable[[], FormattedText]:
+        process = self._controller.selected_process
+        if not process:
             return merge_formatted_text([HTML('')])
-        name = self._ctx.tui_state.process_name_list[idx]
-        desc = self._ctx.config.procs[name].description
-        if not desc:
-            desc = ''
-        else:
-            desc = " - " + desc
-        result = [
-            HTML(f'<b>{name}</b>{desc}')
-        ]
+        desc = " - " + process.config.description if process.config.description else ''
+        result = [HTML(f'<b>{process.name}</b>{desc}')]
         return merge_formatted_text(result)
 
     def __pt_container__(self):
-        return self.container
+        return self._container

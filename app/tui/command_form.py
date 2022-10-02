@@ -5,25 +5,22 @@ from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout import HSplit, VSplit
 from prompt_toolkit.widgets import Button, TextArea
 
-from app.context import ProcMuxContext
 from app.interpolation import Interpolation
 from app.log import logger
-from app.tui.focus import FocusManager
-from app.tui.keybindings import register_app_wide_configured_keybindings, register_configured_keybinding
-from app.tui.style import height_100, width_100
+from app.tui.controller import ProcMuxController
+from app.tui.keybindings import register_configured_keybinding
 
 
 class CommandForm:
     def __init__(self,
-                 focus_manager: FocusManager,
-                 proc_idx: int,
+                 controller: ProcMuxController,
+                 interpolations: List[Interpolation],
                  on_start: Callable,
                  on_cancel: Callable):
         assert on_start
         assert on_cancel
-        self._ctx = ProcMuxContext()
-        self._focus_manager = focus_manager
-        self._interpolations = self.get_interpolations_for_process_id(proc_idx)
+        self._controller = controller
+        self._interpolations = interpolations
         self._tab_idx = 0
 
         start_button = Button(
@@ -32,7 +29,7 @@ class CommandForm:
         cancel_button = Button(
             text='Cancel',
             handler=on_cancel)
-        prompt_template = self._ctx.config.layout.field_replacement_prompt
+        prompt_template = self._controller.config.layout.field_replacement_prompt
         self._text_inputs = [
             TextArea(
                 height=1,
@@ -56,8 +53,8 @@ class CommandForm:
                 start_button,
                 cancel_button
             ])],
-            width=width_100,
-            height=height_100,
+            width=self._controller.config.style.width_100,
+            height=self._controller.config.style.height_100,
             key_bindings=self._get_keybindings())
 
     def _move_cursors_to_last_character(self):
@@ -68,18 +65,16 @@ class CommandForm:
     def _get_keybindings(self):
         kb = KeyBindings()
 
-        def next_input(_event):
+        def next_input(_):
             logger.info('next_input - focusing on next tab index')
             self._tab_idx = (self._tab_idx + 1) % len(self._focusable_components)
             current_input = self._focusable_components[self._tab_idx]
             app = get_app()
-            app.layout.focus(current_input)
+            if app:
+                app.layout.focus(current_input)
 
-        kb = register_configured_keybinding('next_input', next_input, kb)
+        kb = register_configured_keybinding(self._controller.config.keybinding.next_input, next_input, kb)
         return kb
-
-    def __pt_container__(self):
-        return self._container
 
     def _collect_input_as_interpolations(self):
         final_input_interpolations = []
@@ -91,10 +86,5 @@ class CommandForm:
             ))
         return final_input_interpolations
 
-    @staticmethod
-    def get_interpolations_for_process_id(proc_idx: int) -> List[Interpolation]:
-        ctx = ProcMuxContext()
-        proc_name = ctx.tui_state.process_name_list[proc_idx]
-        proc = ctx.config.procs[proc_name]
-        interpolations = proc.interpolations
-        return interpolations
+    def __pt_container__(self):
+        return self._container
