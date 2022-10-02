@@ -101,6 +101,7 @@ class TerminalManager:
         self._running = True
 
     def spawn_terminal(self, run_in_background: bool, interpolations: Optional[List[Interpolation]] = None):
+        logger.info('in spawn terminal')
         if self.is_running():
             logger.info(f'spawned - returning existing terminal - {self._terminal}')
             return

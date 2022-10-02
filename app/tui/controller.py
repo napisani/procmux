@@ -52,6 +52,10 @@ class ProcMuxController:
     def quitting(self) -> bool:
         return self._tui_state.quitting
 
+    @property
+    def interpolating(self) -> bool:
+        return self._tui_state.interpolating
+
     # Processes
 
     @property
@@ -121,6 +125,7 @@ class ProcMuxController:
                 self.start_process(process)
 
     def start_process_in_terminal(self, process: Process):
+        logger.info('in start process in terminal')
         if self.quitting:
             return  # if procmux is in the process of quitting, don't start a new process
 
@@ -130,7 +135,8 @@ class ProcMuxController:
             self.focus_to_sidebar()
 
         def start_cmd(final_interpolations: Optional[List[Interpolation]] = None):
-            finish_interpolating()
+            if self.interpolating:
+                finish_interpolating()
             if self.current_terminal_manager:
                 run_in_background = self.selected_process is None or self.selected_process.index != process.index
                 self.current_terminal_manager.spawn_terminal(run_in_background, final_interpolations)

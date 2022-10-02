@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from prompt_toolkit.layout import Window
 from ptterm import Terminal
@@ -33,7 +33,6 @@ class TUIState:
     selected_process: Optional[Process] = None
 
     terminal_managers: Dict[int, TerminalManager] = {}
-    _terminal_manager_ctor = Callable[[Process], TerminalManager]
 
     _filter: str = ''
     filtered_process_list: List[Process]

@@ -64,5 +64,5 @@ def start_tui(config: ProcMuxConfig):
         color_depth=controller.config.style.color_depth
     )
 
-    application.run()
     controller.autostart()
+    application.run()
