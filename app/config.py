@@ -3,6 +3,7 @@ import os
 from typing import Dict, List, Literal, Optional, OrderedDict, Union
 
 import hiyapyco
+from prompt_toolkit.layout import D, Dimension
 from prompt_toolkit.output import ColorDepth
 
 from app.interpolation import Interpolation, parse_interpolations
@@ -28,7 +29,7 @@ class ProcessConfig:
     cmd: Optional[List[str]] = None
     cwd: str = os.getcwd()
     stop: str = "SIGKILL"
-    env: Dict[str, Optional[str]] = None
+    env: Optional[Dict[str, Optional[str]]] = None
     add_path: Optional[Union[str, List[str]]] = None
     description: Optional[str] = None
     docs: Optional[str] = None
@@ -85,6 +86,14 @@ class StyleConfig:
             return ColorDepth.DEFAULT
         return ColorDepth.TRUE_COLOR
 
+    @property
+    def width_100(self) -> Dimension:
+        return D(preferred=100 * 100)
+
+    @property
+    def height_100(self) -> Dimension:
+        return D(preferred=100 * 100)
+
 
 @dataclass
 class KeybindingConfig:
@@ -111,7 +120,7 @@ class KeybindingConfig:
 
 @dataclass
 class ProcMuxConfig:
-    procs: Optional[Dict[str, ProcessConfig]]
+    procs: Dict[str, ProcessConfig] = field(default_factory=lambda: {})
     style: StyleConfig = StyleConfig()
     keybinding: KeybindingConfig = KeybindingConfig()
     shell_cmd: List[str] = field(default_factory=lambda: [os.environ['SHELL'], '-c'])
