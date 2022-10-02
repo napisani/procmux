@@ -34,12 +34,20 @@ class SideBar:
         self._controller.register_focusable_element(FocusWidget.SIDE_BAR_FILTER, self._buffer_control)
         self._controller.register_focusable_element(FocusWidget.SIDE_BAR_SELECT, self._list_control)
 
+        def _get_filter_container() -> Window:
+            if self._controller.filter_mode or self._filter_buffer.text:
+                return Window(content=self._buffer_control,
+                              height=D(min=1, max=1),
+                              width=D(max=self._fixed_width - 1, weight=1))
+            return Window(height=D(min=0, max=0),
+                          width=D(max=self._fixed_width - 1, weight=1))
+
         self._container: Frame = Frame(
             title='Processes',
             style='class:sidebar',
             width=D(min=self._fixed_width, max=self._fixed_width, weight=1),
             body=HSplit([
-                DynamicContainer(get_container=self._get_filter_container),
+                DynamicContainer(get_container=_get_filter_container),
                 Window(
                     content=self._list_control,
                     style="class:select-box",
@@ -48,14 +56,6 @@ class SideBar:
                     right_margins=[ScrollbarMargin(display_arrows=True), ],
                 )
             ]))
-
-    def _get_filter_container(self) -> Window:
-        if self._controller.filter_mode or self._filter_buffer.text:
-            return Window(content=self._buffer_control,
-                          height=D(min=1, max=1),
-                          width=D(max=self._fixed_width - 1, weight=1))
-        return Window(height=D(min=0, max=0),
-                      width=D(max=self._fixed_width - 1, weight=1))
 
     def _get_text_fragments(self) -> List[Any]:
         result = []
@@ -114,8 +114,12 @@ class SideBar:
         kb = register_configured_keybinding_no_event(self._controller.config.keybinding.quit,
                                                      self._controller.quit,
                                                      kb)
+
+        def start_filter():
+            self._filter_buffer.text = ''
+            self._controller.start_filter()
         kb = register_configured_keybinding_no_event(self._controller.config.keybinding.filter,
-                                                     self._controller.start_filter,
+                                                     start_filter,
                                                      kb)
         kb = register_configured_keybinding_no_event(self._controller.config.keybinding.docs,
                                                      self._controller.view_docs,

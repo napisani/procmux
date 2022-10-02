@@ -254,7 +254,6 @@ class ProcMuxController:
     def start_filter(self):
         logger.info('in start_filter')
         self._tui_state.filter_mode = True
-        self._tui_state.apply_filter('')
         self._tui_state.selected_process = None
         self.focused_widget = FocusWidget.SIDE_BAR_FILTER
 
