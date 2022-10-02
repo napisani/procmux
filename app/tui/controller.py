@@ -4,7 +4,7 @@ from functools import cached_property
 from typing import Any, List, Optional, Union
 
 from prompt_toolkit.application import get_app
-from prompt_toolkit.layout import Container
+from prompt_toolkit.layout import Window
 from prompt_toolkit.mouse_events import MouseEvent, MouseEventType
 from ptterm import Terminal
 
@@ -103,7 +103,7 @@ class ProcMuxController:
     # Terminal
 
     @property
-    def current_terminal(self) -> Union[Terminal, Container]:
+    def current_terminal(self) -> Union[Terminal, Window, Any]:
         return self._tui_state.current_terminal
 
     @property
@@ -141,7 +141,7 @@ class ProcMuxController:
                                            finish_interpolating)
 
             self.register_focusable_element(FocusWidget.TERMINAL_COMMAND_INPUTS, form)
-            self._tui_state.start_interpolating(form.__pt_container__)
+            self._tui_state.start_interpolating(form)
             self.focused_widget = FocusWidget.TERMINAL_COMMAND_INPUTS
             return
         start_cmd()

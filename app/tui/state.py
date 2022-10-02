@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from prompt_toolkit.layout import Container, Window
+from prompt_toolkit.layout import Window
 from ptterm import Terminal
 
 from app.config import ProcMuxConfig, ProcessConfig
@@ -46,7 +46,7 @@ class TUIState:
     quitting: bool = False
     interpolating: bool = False
 
-    _command_form: Optional[Container]
+    _command_form: Optional[Any]
     _terminal_placeholder: Window
 
     def __init__(self, config: ProcMuxConfig):
@@ -67,7 +67,7 @@ class TUIState:
         return None
 
     @property
-    def current_terminal(self) -> Union[Terminal, Container]:
+    def current_terminal(self) -> Union[Terminal, Window, Any]:
         if self.interpolating and self._command_form:
             return self._command_form
         if self.current_terminal_manager and self.current_terminal_manager.terminal:
@@ -147,7 +147,7 @@ class TUIState:
                 return e
         return None
 
-    def start_interpolating(self, command_form: Container):
+    def start_interpolating(self, command_form: Any):
         self._command_form = command_form
         self.interpolating = True
 
