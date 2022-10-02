@@ -75,7 +75,7 @@ class ProcMuxController:
     @property
     def selected_process_has_terminal(self) -> bool:
         return self.current_terminal_manager is not None \
-            and self.current_terminal_manager.is_running()
+            and self.current_terminal_manager.terminal is not None
 
     def is_selected_process(self, process: Process) -> bool:
         if self.selected_process:
@@ -321,7 +321,7 @@ class ProcMuxController:
         if not self.is_focused_on_free_form_input and self.selected_process:
             self.selected_process.scroll_mode = not self.selected_process.scroll_mode
             self.on_scroll_mode_change(self.selected_process)
-            if not self.selected_process.scroll_mode:
+            if not self.selected_process.scroll_mode and not self.zoomed_in:
                 self.focus_to_sidebar()
 
     # /Scroll
