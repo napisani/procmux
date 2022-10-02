@@ -26,7 +26,7 @@ class SideBar:
         self._controller = controller
         self._fixed_width = self._controller.config.layout.processes_list_width
 
-        self._filter_buffer = Buffer()
+        self._filter_buffer = Buffer(on_text_changed=self._controller.update_filter)
         self._buffer_control = BufferControl(
             buffer=self._filter_buffer,
             key_bindings=self._get_buffer_input_key_bindings())
@@ -99,13 +99,14 @@ class SideBar:
     def _get_buffer_input_key_bindings(self):
         def on_exit_filter():
             self._controller.exit_filter(self._filter_buffer.text)
-        return register_configured_keybinding_no_event(
+        kb = register_configured_keybinding_no_event(
             self._controller.config.keybinding.filter, on_exit_filter, KeyBindings())
+        return register_configured_keybinding_no_event(
+            self._controller.config.keybinding.submit_filter, on_exit_filter, kb)
 
     def _get_selection_key_bindings(self):
-        kb = KeyBindings()
         kb = register_configured_keybinding_no_event(
-            self._controller.config.keybinding.up, self._controller.sidebar_up, kb)
+            self._controller.config.keybinding.up, self._controller.sidebar_up, KeyBindings())
         kb = register_configured_keybinding_no_event(
             self._controller.config.keybinding.down, self._controller.sidebar_down, kb)
         kb = register_configured_keybinding_no_event(

@@ -4,6 +4,7 @@ from functools import cached_property
 from typing import Any, List, Optional, Union
 
 from prompt_toolkit.application import get_app
+from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.layout import Window
 from prompt_toolkit.mouse_events import MouseEvent, MouseEventType
 from ptterm import Terminal
@@ -250,6 +251,10 @@ class ProcMuxController:
         self._tui_state.selected_process = None
         self.focused_widget = FocusWidget.SIDE_BAR_FILTER
         self.refresh_app()
+
+    def update_filter(self, buffer: Buffer):
+        logger.info(f'in update filter: {buffer.text}')
+        self._tui_state.apply_filter(buffer.text)
 
     def exit_filter(self, search_text: str):
         logger.info('in exit_filter')

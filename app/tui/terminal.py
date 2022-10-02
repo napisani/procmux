@@ -20,12 +20,11 @@ class TerminalPanel:
             ]))
 
     def get_keybindings(self):
-        kb = KeyBindings()
         return register_app_wide_configured_keybindings(self._controller.config,
                                                         self._controller.switch_focus,
                                                         self._controller.zoom,
                                                         self._controller.toggle_scroll,
-                                                        kb)
+                                                        KeyBindings())
 
     def __pt_container__(self):
         return self._container

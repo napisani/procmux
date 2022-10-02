@@ -63,8 +63,6 @@ class CommandForm:
             buff.cursor_position = len(buff.document.current_line_after_cursor)
 
     def _get_keybindings(self):
-        kb = KeyBindings()
-
         def next_input(_):
             logger.info('next_input - focusing on next tab index')
             self._tab_idx = (self._tab_idx + 1) % len(self._focusable_components)
@@ -73,7 +71,7 @@ class CommandForm:
             if app:
                 app.layout.focus(current_input)
 
-        kb = register_configured_keybinding(self._controller.config.keybinding.next_input, next_input, kb)
+        kb = register_configured_keybinding(self._controller.config.keybinding.next_input, next_input, KeyBindings())
         return kb
 
     def _collect_input_as_interpolations(self):
