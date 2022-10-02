@@ -126,9 +126,10 @@ class ProcMuxController:
         def start_cmd(final_interpolations: Optional[List[Interpolation]] = None):
             if self.interpolating:
                 finish_interpolating()
-            if self.current_terminal_manager:
+            terminal_manager = self._tui_state.terminal_managers[process.index]
+            if terminal_manager:
                 run_in_background = self.selected_process is None or self.selected_process.index != process.index
-                self.current_terminal_manager.spawn_terminal(run_in_background, final_interpolations)
+                terminal_manager.spawn_terminal(run_in_background, final_interpolations)
 
         if len(process.config.interpolations) > 0:
             form = self._command_form_ctor(self,
