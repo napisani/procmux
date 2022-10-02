@@ -1,7 +1,6 @@
-from collections.abc import Callable
 from copy import deepcopy
 from functools import cached_property
-from typing import Any, List, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
 from prompt_toolkit.application import get_app
 from prompt_toolkit.buffer import Buffer

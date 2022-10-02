@@ -1,8 +1,7 @@
-from collections.abc import Callable
 import os
 import signal
 import sys
-from typing import List, Optional
+from typing import List, Optional, Callable
 
 from ptterm import Terminal
 
