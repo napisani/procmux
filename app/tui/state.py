@@ -86,10 +86,8 @@ class TUIState:
             self.selected_process = self.filtered_process_list[0]
 
     def set_selected_process_by_index(self, index: int):
-        for p in self.filtered_process_list:
-            if p.index == index:
-                self.selected_process = p
-                return
+        if self.filtered_process_list and index >= 0 and index < len(self.filtered_process_list):
+            self.selected_process = self.filtered_process_list[index]
 
     def _set_process_list(self, process_config: Dict[str, ProcessConfig]):
         self.process_list = self._sort_process_list(

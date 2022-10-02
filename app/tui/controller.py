@@ -227,16 +227,15 @@ class ProcMuxController:
             self._tui_state.select_first_process()
             return
 
-        current_index = self.selected_process.index
         available_indices = [p.index for p in self.filtered_process_list]
 
-        if current_index not in available_indices:
+        if self.selected_process.index not in available_indices:
             self._tui_state.select_first_process()
             return
 
-        idx_in_filtered_list = available_indices.index(self.selected_process.index)
-        new_idx_in_filtered_list = ((idx_in_filtered_list + direction) % len(self.filtered_process_list))
-        self._tui_state.set_selected_process_by_index(new_idx_in_filtered_list)
+        current_index = available_indices.index(self.selected_process.index)
+        new_index = ((current_index + direction) % len(self.filtered_process_list))
+        self._tui_state.set_selected_process_by_index(new_index)
 
     def sidebar_up(self):
         self.move(-1)
