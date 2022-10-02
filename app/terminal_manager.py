@@ -68,10 +68,12 @@ class TerminalManager:
             sig_code = getattr(signal, stop_signal)
             try:
                 if hasattr(self._terminal.process.terminal, 'send_signal'):
-                    logger.info(f'stopping process with defined signal {stop_signal}')
+                    logger.info(f'stopping process {self._process_name} with defined signal {stop_signal}')
                     self._terminal.process.terminal.send_signal(sig_code)
                 else:
-                    logger.info('using x-platform process kill() - disregarding defined kill sig')
+                    logger.info(
+                        f'killing process {self._process_name} using x-platform process kill()'
+                        f' - disregarding defined kill sig')
                     self.kill()
             except Exception as e:
                 logger.error(f'failed to kill process: {self._process_name} {e}')
@@ -79,7 +81,7 @@ class TerminalManager:
     def kill(self):
         if self.is_running() and self._terminal:
             try:
-                logger.info('running kill()')
+                logger.info(f'running kill() on process {self._process_name}')
                 self._terminal.terminal_control.process.kill()
             except Exception as e:
                 logger.error(f'failed to kill process name: {self._process_name} {e}')
@@ -91,13 +93,14 @@ class TerminalManager:
             handler(self._process_index)
 
     def _handle_process_spawned(self):
-        logger.info(f'created terminal {self._terminal}')
+        logger.info(f'created terminal {self._terminal} for process {self._process_name}')
         self._running = True
 
     def spawn_terminal(self, run_in_background: bool, interpolations: Optional[List[Interpolation]] = None):
-        logger.info('in spawn terminal')
+        logger.info(f'in spawn terminal for process {self._process_name}')
         if self.is_running():
-            logger.info(f'spawned - returning existing terminal - {self._terminal}')
+            logger.info(
+                f'{self._process_name} terminal already running - returning existing terminal - {self._terminal}')
             return
 
         def before_exec():
@@ -112,7 +115,7 @@ class TerminalManager:
                                   before_exec_func=before_exec,
                                   done_callback=self._handle_process_done)
         if run_in_background:
-            logger.info('rendering ptterm in the background, because this terminal is not actively selected')
+            logger.info(f'rendering ptterm in the background, because {self._process_name} is not actively selected')
             self._terminal.terminal_control.create_content(width=100, height=100)
         self._handle_process_spawned()
 

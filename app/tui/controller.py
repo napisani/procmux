@@ -82,7 +82,7 @@ class ProcMuxController:
         return False
 
     def start_process(self, process: Optional[Process] = None):
-        logger.info('in start_process')
+        logger.info(f'in start_process {process.name if process else ""}')
         if process:
             self.start_process_in_terminal(process)
             return
@@ -98,6 +98,7 @@ class ProcMuxController:
         logger.info('in on process done')
         for process in self.process_list:
             if process.index == index:
+                logger.info(f'process {process.name} done')
                 process.running = False
 
     # /Processes
@@ -113,7 +114,7 @@ class ProcMuxController:
         return self._tui_state.current_terminal_manager
 
     def start_process_in_terminal(self, process: Process):
-        logger.info('in start process in terminal')
+        logger.info(f'starting {process.name} in terminal')
         if self.quitting:
             return  # if procmux is in the process of quitting, don't start a new process
 
@@ -250,7 +251,7 @@ class ProcMuxController:
         self._tui_state.apply_filter(buffer.text)
 
     def exit_filter(self, search_text: str):
-        logger.info('in exit_filter')
+        logger.info(f'in exit_filter: {search_text}')
         self._tui_state.apply_filter(search_text)
         self._tui_state.filter_mode = False
         self.focus_to_sidebar()
@@ -282,7 +283,7 @@ class ProcMuxController:
             self.toggle_zoom()
 
     def toggle_zoom(self):
-        logger.info('in zoom')
+        logger.info('in toggle_zoom')
         if self.zoomed_in:
             logger.info('setting zoomed_in to False')
             self._tui_state.zoomed_in = False
@@ -329,8 +330,8 @@ class ProcMuxController:
         if not application or self.quitting:
             return  # avoid registering process done handler multiple times
         self._tui_state.quitting = True
+        logger.info('quit - sending kill signals')
         for tm in self._tui_state.terminal_managers.values():
-            logger.info('on_quit - sending kill signals')
             tm.send_kill_signal()
         if not self._tui_state.has_running_processes:
             application.exit()
