@@ -1,33 +1,37 @@
 from typing import Callable, Union
+
 from prompt_toolkit import HTML
 from prompt_toolkit.formatted_text import merge_formatted_text
 from prompt_toolkit.formatted_text.base import FormattedText
-from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout import FormattedTextControl, Window
 from prompt_toolkit.widgets import Frame
 
 from app.tui.controller import ProcMuxController
-from app.tui.keybindings import register_configured_keybinding_no_event
+from app.tui.keybindings import DocumentedKeybindings, register_configured_keybinding_no_event
 from app.tui.state import FocusWidget
 
 
 class DocsDialog:
     def __init__(self, controller: ProcMuxController):
         self._controller: ProcMuxController = controller
+        kb = self._get_key_bindings()
         self._container: Frame = Frame(
             title=self._get_title,
-            key_bindings=self._get_key_bindings(),
+            key_bindings=kb,
             body=Window(
                 content=FormattedTextControl(
                     text=self._get_formatted_text,
                     focusable=True,
                     show_cursor=False
                 )))
-        self._controller.register_focusable_element(FocusWidget.DOCS, self._container)
+        self._controller.register_focusable_element(FocusWidget.DOCS, self._container, keybinding_help=kb.help_docs)
 
-    def _get_key_bindings(self):
+    def _get_key_bindings(self) -> DocumentedKeybindings:
         return register_configured_keybinding_no_event(
-            self._controller.config.keybinding.docs, self._controller.close_docs, KeyBindings())
+            self._controller.config.keybinding.docs,
+            self._controller.close_docs,
+            DocumentedKeybindings(),
+            'docs')
 
     def _get_title(self) -> str:
         process = self._controller.selected_process

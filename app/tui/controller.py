@@ -12,7 +12,7 @@ from app.config import ProcMuxConfig
 from app.interpolation import Interpolation
 from app.log import logger
 from app.terminal_manager import TerminalManager
-from app.tui.state import FocusWidget, Process, TUIState
+from app.tui.state import FocusTarget, FocusWidget, KeybindingDocumentation, Process, TUIState
 
 """
 ProxMuxController is responsible for updating state and sharing
@@ -75,7 +75,7 @@ class ProcMuxController:
     @property
     def selected_process_has_terminal(self) -> bool:
         return self.current_terminal_manager is not None \
-            and self.current_terminal_manager.terminal is not None
+               and self.current_terminal_manager.terminal is not None
 
     def is_selected_process(self, process: Process) -> bool:
         if self.selected_process:
@@ -147,8 +147,8 @@ class ProcMuxController:
                                            process.config.interpolations,
                                            start_cmd,
                                            finish_interpolating)
-
-            self.register_focusable_element(FocusWidget.TERMINAL_COMMAND_INPUTS, form)
+            kb = form.get_keybindings()
+            self.register_focusable_element(FocusWidget.TERMINAL_COMMAND_INPUTS, form, kb.help_docs)
             self._tui_state.start_interpolating(form)
             self.focused_widget = FocusWidget.TERMINAL_COMMAND_INPUTS
             return
@@ -157,19 +157,31 @@ class ProcMuxController:
     # /Terminal
 
     # Focus
+    def _focused_target(self) -> Optional[FocusTarget]:
+        app = get_app()
+        if app:
+            for target in self._tui_state.focus_targets:
+                if app.layout.has_focus(target.element):
+                    return target
+        return None
 
     @property
     def focused_widget(self) -> FocusWidget:
-        app = get_app()
-        if app:
-            for widget, element in self._tui_state.focus_elements:
-                if app.layout.has_focus(element):
-                    return widget
-        return FocusWidget.TERMINAL
+        target = self._focused_target()
+        if not target:
+            return FocusWidget.TERMINAL
+        return target.widget
 
     @focused_widget.setter
     def focused_widget(self, value: FocusWidget):
         self._set_focus(self._tui_state.get_focus_element(value))
+
+    @property
+    def focused_keybinding_help(self) -> List[KeybindingDocumentation]:
+        target = self._focused_target()
+        if not target or not target.keybinding_help:
+            return []
+        return target.keybinding_help
 
     @property
     def is_focused_on_free_form_input(self):
@@ -180,8 +192,18 @@ class ProcMuxController:
         if app and element:
             app.layout.focus(element)
 
-    def register_focusable_element(self, widget: FocusWidget, element: Any):
-        self._tui_state.register_focusable_element(widget, element)
+    def register_focusable_element(
+            self,
+            widget: FocusWidget,
+            element: Any,
+            keybinding_help: List[KeybindingDocumentation] = None):
+        if keybinding_help is None:
+            keybinding_help = []
+
+        self._tui_state.register_focusable_element(
+            FocusTarget(widget=widget,
+                        element=element,
+                        keybinding_help=keybinding_help))
 
     def deregister_focusable_element(self, widget: FocusWidget):
         self._tui_state.deregister_focusable_element(widget)
@@ -197,7 +219,7 @@ class ProcMuxController:
         return False
 
     def toggle_sidebar_terminal_focus(self):
-        logger.info('toggling focus between sidebar and terminal')
+        logger.info(f'toggling focus between sidebar and terminal- focus_widget:{self.focused_widget}')
         if self.docs_open:
             logger.info('in toggle_sidebar_terminal_focus - but the docs are open, toggling docs off instead')
             self.toggle_docs()
@@ -207,8 +229,10 @@ class ProcMuxController:
             self.toggle_zoom()
             return
         if self.focused_widget == FocusWidget.TERMINAL:
+            logger.info('currently focused on terminal switching to sidebar')
             self.focus_to_sidebar()
         elif self.focused_widget == FocusWidget.SIDE_BAR_SELECT:
+            logger.info('currently focused on sidebar switching to terminal')
             self.focus_to_current_terminal()
 
     def focus_to_sidebar(self):
