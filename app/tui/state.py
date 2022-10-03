@@ -1,12 +1,15 @@
-from dataclasses import dataclass
+from collections import namedtuple
+from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from prompt_toolkit.layout import Window
 from ptterm import Terminal
 
 from app.config import ProcMuxConfig, ProcessConfig
 from app.terminal_manager import TerminalManager
+
+KeybindingDocumentation = namedtuple("KeybindingDocumentation", ["label", "help"])
 
 
 class FocusWidget(Enum):
@@ -26,6 +29,20 @@ class Process:
     scroll_mode: bool = False
 
 
+@dataclass(frozen=True)
+class KeybindingDocumentation:
+    label: str
+    help: str
+    should_display: Callable[[], bool] = field(default_factory=lambda: lambda: True)
+
+
+@dataclass(frozen=True)
+class FocusTarget:
+    widget: FocusWidget
+    element: Any
+    keybinding_help: List[KeybindingDocumentation] = field(default_factory=lambda: [])
+
+
 class TUIState:
     def __init__(self, config: ProcMuxConfig):
         self.config: ProcMuxConfig = config
@@ -38,7 +55,7 @@ class TUIState:
         self.selected_process: Optional[Process] = self.filtered_process_list[0] if self.filtered_process_list else None
         self.terminal_managers: Dict[int, TerminalManager] = self._create_terminal_managers(self.process_list)
         self._filter: str = ''
-        self.focus_elements: List[Tuple[FocusWidget, Any]] = []
+        self.focus_targets: List[FocusTarget] = []
         self.zoomed_in: bool = False
         self.filter_mode: bool = False
         self.docs_open: bool = False
@@ -120,16 +137,16 @@ class TUIState:
         self.filtered_process_list = self._sort_process_list([p for p in self.process_list if filter_(self._filter, p)])
         self.selected_process = self.filtered_process_list[0] if self.filtered_process_list else None
 
-    def register_focusable_element(self, widget: FocusWidget, element: Any):
-        self.focus_elements.append((widget, element))
+    def register_focusable_element(self, target: FocusTarget):
+        self.focus_targets.append(target)
 
     def deregister_focusable_element(self, widget: FocusWidget):
-        self.focus_elements = [fe for fe in self.focus_elements if fe[0] != widget]
+        self.focus_targets = [fe for fe in self.focus_targets if fe.widget != widget]
 
     def get_focus_element(self, widget: FocusWidget) -> Optional[Any]:
-        for w, e in self.focus_elements:
-            if w == widget:
-                return e
+        for target in self.focus_targets:
+            if target.widget == widget:
+                return target.element
         return None
 
     def start_interpolating(self, command_form: Any):

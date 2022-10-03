@@ -65,7 +65,7 @@ def preform_test_within_tui(keys, assertion):
                 run_app(config)
 
     else:
-        screen = pyte.Screen(80, 30)
+        screen = pyte.Screen(100, 30)
         stream = pyte.ByteStream(screen)
         for key in keys:
             print(f'sending key input: {key}')
@@ -116,7 +116,7 @@ def test_tui_shows_terminal_help():
         assert '<x> stop' not in full_screen
         assert '<w> switch' in full_screen
 
-    preform_test_within_tui(keys=['s', 'w'], assertion=assert_terminal_help_bar)
+    preform_test_within_tui(keys=['w'], assertion=assert_terminal_help_bar)
 
 
 def test_tui_filter():

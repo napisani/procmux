@@ -1,14 +1,13 @@
 from typing import Callable, List
 
 from prompt_toolkit.application import get_app
-from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout import HSplit, VSplit
 from prompt_toolkit.widgets import Button, TextArea
 
 from app.interpolation import Interpolation
 from app.log import logger
 from app.tui.controller import ProcMuxController
-from app.tui.keybindings import register_configured_keybinding
+from app.tui.keybindings import DocumentedKeybindings, register_configured_keybinding
 
 
 class CommandForm:
@@ -55,14 +54,14 @@ class CommandForm:
             ])],
             width=self._controller.config.style.width_100,
             height=self._controller.config.style.height_100,
-            key_bindings=self._get_keybindings())
+            key_bindings=self.get_keybindings())
 
     def _move_cursors_to_last_character(self):
         for ti in self._text_inputs:
             buff = ti.control.buffer
             buff.cursor_position = len(buff.document.current_line_after_cursor)
 
-    def _get_keybindings(self):
+    def get_keybindings(self) -> DocumentedKeybindings:
         def next_input(_):
             logger.info('next_input - focusing on next tab index')
             self._tab_idx = (self._tab_idx + 1) % len(self._focusable_components)
@@ -71,7 +70,9 @@ class CommandForm:
             if app:
                 app.layout.focus(current_input)
 
-        kb = register_configured_keybinding(self._controller.config.keybinding.next_input, next_input, KeyBindings())
+        kb = register_configured_keybinding(self._controller.config.keybinding.next_input,
+                                            next_input,
+                                            DocumentedKeybindings())
         return kb
 
     def _collect_input_as_interpolations(self):

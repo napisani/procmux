@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from prompt_toolkit.application import Application
-from prompt_toolkit.key_binding import DynamicKeyBindings, KeyBindings
+from prompt_toolkit.key_binding import DynamicKeyBindings
 from prompt_toolkit.layout import ConditionalContainer, DynamicContainer, HSplit, Layout, VSplit
 from prompt_toolkit.styles import Style
 
@@ -10,6 +10,7 @@ from app.tui.command_form import CommandForm
 from app.tui.controller import ProcMuxController
 from app.tui.docs import DocsDialog
 from app.tui.help import HelpPanel
+from app.tui.keybindings import DocumentedKeybindings
 from app.tui.process_description import ProcessDescriptionPanel
 from app.tui.side_bar import SideBar
 from app.tui.state import FocusWidget, TUIState
@@ -48,10 +49,10 @@ def start_tui(config: ProcMuxConfig):
             return docs_layout_container
         return main_layout_container
 
-    def _get_app_keybindings():
+    def _get_app_keybindings() -> DocumentedKeybindings:
         if controller.focused_widget == FocusWidget.TERMINAL:
             return terminal_wrapper.get_keybindings()
-        return KeyBindings()
+        return DocumentedKeybindings()
 
     application = Application(
         layout=Layout(
