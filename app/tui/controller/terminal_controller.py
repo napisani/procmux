@@ -12,7 +12,7 @@ from app.tui.types import Process
 from app.util.interpolation import interpolate, Interpolation
 
 if TYPE_CHECKING:
-    from app.tui.controller import TUIController
+    from app.tui.controller.tui_controller import TUIController
 
 
 class TerminalController:
