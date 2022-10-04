@@ -28,7 +28,7 @@ class TUIState:
         return self._command_form
 
     def get_focus_element(self, widget: FocusWidget) -> Optional[Any]:
-        next((ft.element for ft in self._focus_targets if ft.widget == widget), None)
+        return next((ft.element for ft in self._focus_targets if ft.widget == widget), None)
 
     def register_focusable_element(self, target: FocusTarget):
         self._focus_targets.append(target)

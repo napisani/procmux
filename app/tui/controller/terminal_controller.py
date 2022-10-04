@@ -1,7 +1,7 @@
 import os
 import signal
 import sys
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 from ptterm import Terminal
 
@@ -11,14 +11,17 @@ from app.tui.state.terminal_state import TerminalState
 from app.tui.types import Process
 from app.util.interpolation import interpolate, Interpolation
 
+if TYPE_CHECKING:
+    from app.tui.controller import TUIController
+
 
 class TerminalController:
     def __init__(self,
-                 controller,  # no type hint to avoid circular dependency, don't know how to get around this
+                 controller: 'TUIController',
                  config: ProcMuxConfig,
                  process: Process
                  ):
-        self._controller = controller
+        self._controller: TUIController = controller
         self._config: ProcMuxConfig = config
         self._terminal_state = TerminalState(process)
 
@@ -123,9 +126,9 @@ class TerminalController:
         self._handle_process_spawned()
 
     def on_scroll_mode_change(self, scroll_mode: bool):
-        if self.terminal and self._scroll_mode != scroll_mode:
-            self._scroll_mode = scroll_mode
-            if self._scroll_mode:
+        if self.terminal and self._terminal_state.scroll_mode != scroll_mode:
+            self._terminal_state.scroll_mode = scroll_mode
+            if self._terminal_state.scroll_mode:
                 self.terminal.enter_copy_mode()
             else:
                 self.terminal.exit_copy_mode()
