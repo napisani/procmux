@@ -6,13 +6,13 @@ from prompt_toolkit.formatted_text import FormattedText, HTML, merge_formatted_t
 from prompt_toolkit.layout import Window
 from prompt_toolkit.layout.controls import FormattedTextControl
 
-from app.tui.controller import ProcMuxController
-from app.tui.state import KeybindingDocumentation
+from app.tui.types import KeybindingDocumentation
+from app.tui.controller.tui_controller import TUIController
 
 
 class HelpPanel:
-    def __init__(self, controller: ProcMuxController):
-        self._controller: ProcMuxController = controller
+    def __init__(self, controller: TUIController):
+        self._controller: TUIController = controller
         self._container: Window = Window(
             height=1,
             content=FormattedTextControl(

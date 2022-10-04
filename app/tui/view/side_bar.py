@@ -8,17 +8,17 @@ from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.dimension import D, Dimension
 from prompt_toolkit.widgets import Frame
 
-from app.tui.controller import ProcMuxController
 from app.tui.keybindings import DocumentedKeybindings, register_app_wide_configured_keybindings, \
     register_configured_keybinding_no_event
-from app.tui.state import FocusWidget
+from app.tui.types import FocusWidget
+from app.tui.controller.tui_controller import TUIController
 
 
 class SideBar:
     _right_padding: int = 5
 
-    def __init__(self, controller: ProcMuxController):
-        self._controller: ProcMuxController = controller
+    def __init__(self, controller: TUIController):
+        self._controller: TUIController = controller
         self._fixed_width: int = self._controller.config.layout.processes_list_width
 
         self._filter_buffer: Buffer = Buffer(on_text_changed=self._controller.update_filter)

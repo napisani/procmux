@@ -2,23 +2,27 @@ from __future__ import unicode_literals
 
 from prompt_toolkit.application import Application
 from prompt_toolkit.key_binding import DynamicKeyBindings
-from prompt_toolkit.layout import ConditionalContainer, DynamicContainer, HSplit, Layout, VSplit
+from prompt_toolkit.layout import ConditionalContainer, DynamicContainer, HSplit, Layout, VSplit, Window
 from prompt_toolkit.styles import Style
 
 from app.config import ProcMuxConfig
-from app.tui.command_form import CommandForm
-from app.tui.controller import ProcMuxController
-from app.tui.docs import DocsDialog
-from app.tui.help import HelpPanel
 from app.tui.keybindings import DocumentedKeybindings
-from app.tui.process_description import ProcessDescriptionPanel
-from app.tui.side_bar import SideBar
-from app.tui.state import FocusWidget, TUIState
-from app.tui.terminal import TerminalPanel
+from app.tui.types import FocusWidget
+from app.tui.controller.tui_controller import TUIController
+from app.tui.view.command_form import CommandForm
+from app.tui.view.docs import DocsDialog
+from app.tui.view.help import HelpPanel
+from app.tui.view.process_description import ProcessDescriptionPanel
+from app.tui.view.side_bar import SideBar
+from app.tui.view.terminal import TerminalPanel
 
 
 def start_tui(config: ProcMuxConfig):
-    controller = ProcMuxController(TUIState(config), CommandForm)
+    terminal_placeholder = Window(style=f'bg:{config.style.placeholder_terminal_bg_color}',
+                                  width=config.style.width_100,
+                                  height=config.style.height_100)
+
+    controller = TUIController(config, terminal_placeholder, CommandForm)
 
     terminal_wrapper = TerminalPanel(controller)
     side_bar = SideBar(controller)
