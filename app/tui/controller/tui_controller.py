@@ -1,6 +1,6 @@
 from copy import deepcopy
 from functools import cached_property
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from prompt_toolkit.application import get_app
 from prompt_toolkit.buffer import Buffer
@@ -9,26 +9,22 @@ from prompt_toolkit.mouse_events import MouseEvent, MouseEventType
 from ptterm import Terminal
 
 from app.config import ProcMuxConfig
-from app.interpolation import Interpolation
 from app.log import logger
-from app.terminal_manager import TerminalManager
-from app.tui.state import FocusTarget, FocusWidget, KeybindingDocumentation, Process, TUIState
-
-"""
-ProxMuxController is responsible for updating state and sharing
-state changes with registered handlers
-"""
+from app.tui.controller.terminal_controller import TerminalController
+from app.tui.state.process_state import ProcessState
+from app.tui.state.tui_state import TUIState
+from app.tui.types import FocusTarget, FocusWidget, KeybindingDocumentation, Process
+from app.util.interpolation import Interpolation
 
 
-class ProcMuxController:
-    def __init__(self, tui_state: TUIState, command_form_ctor):
-        self._tui_state: TUIState = tui_state
+class TUIController:
+    def __init__(self, config: ProcMuxConfig, terminal_placeholder: Window, command_form_ctor):
+        self._terminal_placeholder = terminal_placeholder
         self._command_form_ctor = command_form_ctor
-        self._on_scroll_mode_changed_handlers: List[Callable[[int, bool], None]] = []
-        for tm in self._tui_state.terminal_managers.values():
-            tm.register_on_process_spawned_handler(self.on_process_spawned)
-            tm.register_on_process_done_handler(self.on_process_done)
-            self.register_scroll_mode_change_handler(tm.on_scroll_mode_change)
+        self._tui_state: TUIState = TUIState(config)
+        self._process_state: ProcessState = ProcessState(config)
+        self._terminal_controllers: Dict[int, TerminalController] = \
+            self._create_terminal_controllers(config, self._process_state.process_list)
 
     @cached_property
     def config(self) -> ProcMuxConfig:
@@ -58,24 +54,19 @@ class ProcMuxController:
 
     @property
     def process_list(self) -> List[Process]:
-        return self._tui_state.process_list
+        return self._process_state.process_list
 
     @property
     def filtered_process_list(self) -> List[Process]:
-        return self._tui_state.filtered_process_list
+        return self._process_state.filtered_process_list
 
     @property
     def selected_process(self) -> Optional[Process]:
-        return self._tui_state.selected_process
+        return self._process_state.selected_process
 
     @property
     def is_selected_process_running(self) -> bool:
-        return self.selected_process.running if self.selected_process else False
-
-    @property
-    def selected_process_has_terminal(self) -> bool:
-        return self.current_terminal_manager is not None \
-               and self.current_terminal_manager.terminal is not None
+        return self._process_state.is_selected_process_running
 
     def is_selected_process(self, process: Process) -> bool:
         if self.selected_process:
@@ -92,37 +83,37 @@ class ProcMuxController:
 
     def stop_process(self):
         logger.info('in stop_process')
-        if self.current_terminal_manager:
-            self.current_terminal_manager.send_kill_signal()
+        if self.current_terminal_controller:
+            self.current_terminal_controller.stop_process()
 
-    def on_process_spawned(self, index: int):
-        logger.info('in on process spawned')
-        for process in self.process_list:
-            if process.index == index:
-                logger.info(f'process {process.name} spawned')
-                process.running = True
+    def on_process_spawned(self, process: Process):
+        logger.info(f'in on process spawned: {process.name}')
+        process.running = True
 
-    def on_process_done(self, index: int):
-        logger.info('in on process done')
-        for process in self.process_list:
-            if process.index == index:
-                logger.info(f'process {process.name} done')
-                process.running = False
-                if self.quitting and not self._tui_state.has_running_processes:
-                    self._quit()
-                self.refresh_app()
+    def on_process_done(self, process: Process):
+        logger.info(f'in on process done: {process.name}')
+        process.running = False
+        if self.quitting and not self._process_state.has_running_processes:
+            self._quit()
+        self.refresh_app()
 
     # /Processes
 
     # Terminal
 
     @property
-    def current_terminal(self) -> Union[Terminal, Window, Any]:
-        return self._tui_state.current_terminal
+    def current_terminal_controller(self) -> Optional[TerminalController]:
+        if self.selected_process:
+            return self._terminal_controllers.get(self.selected_process.index, None)
+        return None
 
     @property
-    def current_terminal_manager(self) -> Optional[TerminalManager]:
-        return self._tui_state.current_terminal_manager
+    def current_terminal(self) -> Union[Terminal, Window, Any]:
+        if self.interpolating and self._tui_state._command_form:
+            return self._tui_state._command_form
+        if self.current_terminal_controller and self.current_terminal_controller.terminal:
+            return self.current_terminal_controller.terminal
+        return self._terminal_placeholder
 
     def start_process_in_terminal(self, process: Process):
         logger.info(f'starting {process.name} in terminal')
@@ -137,10 +128,10 @@ class ProcMuxController:
         def start_cmd(final_interpolations: Optional[List[Interpolation]] = None):
             if self.interpolating:
                 finish_interpolating()
-            terminal_manager = self._tui_state.terminal_managers[process.index]
-            if terminal_manager:
+            terminal_controller = self._terminal_controllers[process.index]
+            if terminal_controller:
                 run_in_background = self.selected_process is None or self.selected_process.index != process.index
-                terminal_manager.spawn_terminal(run_in_background, final_interpolations)
+                terminal_controller.spawn_terminal(run_in_background, final_interpolations)
 
         if len(process.config.interpolations) > 0:
             form = self._command_form_ctor(self,
@@ -157,6 +148,7 @@ class ProcMuxController:
     # /Terminal
 
     # Focus
+
     def _focused_target(self) -> Optional[FocusTarget]:
         app = get_app()
         if app:
@@ -196,14 +188,11 @@ class ProcMuxController:
             self,
             widget: FocusWidget,
             element: Any,
-            keybinding_help: List[KeybindingDocumentation] = None):
-        if keybinding_help is None:
-            keybinding_help = []
-
+            keybinding_help: Optional[List[KeybindingDocumentation]] = None):
         self._tui_state.register_focusable_element(
             FocusTarget(widget=widget,
                         element=element,
-                        keybinding_help=keybinding_help))
+                        keybinding_help=keybinding_help if keybinding_help else []))
 
     def deregister_focusable_element(self, widget: FocusWidget):
         self._tui_state.deregister_focusable_element(widget)
@@ -213,8 +202,8 @@ class ProcMuxController:
         if self.current_terminal:
             application = get_app()
             if application:
-                application.layout.focus(self.current_terminal)
                 logger.info('focusing on selected process terminal')
+                application.layout.focus(self.current_terminal)
             return True
         return False
 
@@ -247,27 +236,27 @@ class ProcMuxController:
         logger.info(f'in sidebar mouse event: {event}')
         if event.event_type == MouseEventType.MOUSE_UP:
             _, y = event.position
-            self._tui_state.set_selected_process_by_index(y)
+            self._process_state.set_selected_process_by_y_pos(y)
             self.focus_to_sidebar()
 
     def move_process_selection(self, direction: int):
         if not self.selected_process:
-            self._tui_state.select_first_process()
+            self._process_state.select_first_process()
             return
 
         if len(self.filtered_process_list) < 2:
-            self._tui_state.select_first_process()
+            self._process_state.select_first_process()
             return
 
         available_indices = [p.index for p in self.filtered_process_list]
 
         if self.selected_process.index not in available_indices:
-            self._tui_state.select_first_process()
+            self._process_state.select_first_process()
             return
 
         current_index = available_indices.index(self.selected_process.index)
         new_index = ((current_index + direction) % len(self.filtered_process_list))
-        self._tui_state.set_selected_process_by_index(new_index)
+        self._process_state.set_selected_process_by_y_pos(new_index)
 
     def sidebar_up(self):
         self.move_process_selection(-1)
@@ -278,16 +267,16 @@ class ProcMuxController:
     def start_filter(self):
         logger.info('in start_filter')
         self._tui_state.filter_mode = True
-        self._tui_state.selected_process = None
+        self._process_state.selected_process = None
         self.focused_widget = FocusWidget.SIDE_BAR_FILTER
 
     def update_filter(self, buffer: Buffer):
         logger.info(f'in update filter: {buffer.text}')
-        self._tui_state.apply_filter(buffer.text)
+        self._process_state.apply_filter(buffer.text)
 
     def exit_filter(self, search_text: str):
         logger.info(f'in exit_filter: {search_text}')
-        self._tui_state.apply_filter(search_text)
+        self._process_state.apply_filter(search_text)
         self._tui_state.filter_mode = False
         self.focus_to_sidebar()
 
@@ -332,12 +321,10 @@ class ProcMuxController:
 
     # Scroll
 
-    def register_scroll_mode_change_handler(self, handler: Callable[[int, bool], None]):
-        self._on_scroll_mode_changed_handlers.append(handler)
-
     def on_scroll_mode_change(self, process: Process):
-        for handler in self._on_scroll_mode_changed_handlers:
-            handler(process.index, process.scroll_mode)
+        terminal_controller = self._terminal_controllers[process.index]
+        if terminal_controller:
+            terminal_controller.on_scroll_mode_change(process.scroll_mode)
 
     def toggle_scroll(self):
         logger.info('in _toggle_scroll')
@@ -348,6 +335,12 @@ class ProcMuxController:
                 self.focus_to_sidebar()
 
     # /Scroll
+
+    def _create_terminal_controllers(self,
+                                     config: ProcMuxConfig,
+                                     process_list: List[Process],
+                                     ) -> Dict[int, TerminalController]:
+        return {p.index: TerminalController(self, config, p) for p in process_list}
 
     def autostart(self):
         logger.info('in autostart')
@@ -366,9 +359,9 @@ class ProcMuxController:
             return  # avoid registering process done handler multiple times
         self._tui_state.quitting = True
         logger.info('quit - sending kill signals')
-        for tm in self._tui_state.terminal_managers.values():
-            tm.send_kill_signal()
-        if not self._tui_state.has_running_processes:
+        for tc in self._terminal_controllers.values():
+            tc.stop_process()
+        if not self._process_state.has_running_processes:
             application.exit()
 
     def _quit(self):

@@ -4,15 +4,15 @@ from prompt_toolkit.application import get_app
 from prompt_toolkit.layout import HSplit, VSplit
 from prompt_toolkit.widgets import Button, TextArea
 
-from app.interpolation import Interpolation
 from app.log import logger
-from app.tui.controller import ProcMuxController
 from app.tui.keybindings import DocumentedKeybindings, register_configured_keybinding
+from app.tui.controller.tui_controller import TUIController
+from app.util.interpolation import Interpolation
 
 
 class CommandForm:
     def __init__(self,
-                 controller: ProcMuxController,
+                 controller: TUIController,
                  interpolations: List[Interpolation],
                  on_start: Callable,
                  on_cancel: Callable):

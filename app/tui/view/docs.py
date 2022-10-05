@@ -6,14 +6,14 @@ from prompt_toolkit.formatted_text.base import FormattedText
 from prompt_toolkit.layout import FormattedTextControl, Window
 from prompt_toolkit.widgets import Frame
 
-from app.tui.controller import ProcMuxController
 from app.tui.keybindings import DocumentedKeybindings, register_configured_keybinding_no_event
-from app.tui.state import FocusWidget
+from app.tui.types import FocusWidget
+from app.tui.controller.tui_controller import TUIController
 
 
 class DocsDialog:
-    def __init__(self, controller: ProcMuxController):
-        self._controller: ProcMuxController = controller
+    def __init__(self, controller: TUIController):
+        self._controller: TUIController = controller
         kb = self._get_key_bindings()
         self._container: Frame = Frame(
             title=self._get_title,

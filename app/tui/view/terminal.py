@@ -1,14 +1,14 @@
 from prompt_toolkit.layout import DynamicContainer, VSplit  # , Window
 from prompt_toolkit.widgets import Frame
 
-from app.tui.controller import ProcMuxController
 from app.tui.keybindings import DocumentedKeybindings, register_app_wide_configured_keybindings
-from app.tui.state import FocusWidget
+from app.tui.types import FocusWidget
+from app.tui.controller.tui_controller import TUIController
 
 
 class TerminalPanel:
-    def __init__(self, controller: ProcMuxController):
-        self._controller: ProcMuxController = controller
+    def __init__(self, controller: TUIController):
+        self._controller: TUIController = controller
         self._container: Frame = Frame(
             title='Terminal',
             body=VSplit([

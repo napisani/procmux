@@ -6,12 +6,12 @@ from prompt_toolkit.formatted_text.base import FormattedText
 from prompt_toolkit.layout import Window
 from prompt_toolkit.layout.controls import FormattedTextControl
 
-from app.tui.controller import ProcMuxController
+from app.tui.controller.tui_controller import TUIController
 
 
 class ProcessDescriptionPanel:
-    def __init__(self, controller: ProcMuxController):
-        self._controller: ProcMuxController = controller
+    def __init__(self, controller: TUIController):
+        self._controller: TUIController = controller
         self._container: Window = Window(
             height=1,
             content=FormattedTextControl(

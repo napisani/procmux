@@ -3,7 +3,7 @@ from typing import Any, Callable, List, Optional
 from prompt_toolkit.key_binding import KeyBindings
 
 from app.config import ProcMuxConfig
-from app.tui.state import KeybindingDocumentation
+from app.tui.types import KeybindingDocumentation
 
 
 class DocumentedKeybindings(KeyBindings):
