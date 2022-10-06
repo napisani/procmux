@@ -61,20 +61,25 @@ def register_app_wide_configured_keybindings(config: ProcMuxConfig,
                                              switch_focus: Callable[[], None],
                                              zoom: Callable[[], None],
                                              toggle_scroll: Callable[[], None],
-                                             kb: DocumentedKeybindings) -> DocumentedKeybindings:
+                                             kb: DocumentedKeybindings,
+                                             should_show_help: Optional[Callable[[], bool]] = None
+                                             ) -> DocumentedKeybindings:
     kb = register_configured_keybinding_no_event(
         config.keybinding.switch_focus,
         switch_focus,
         kb,
-        help_label='switch_focus')
+        help_label='switch_focus',
+        should_show_help=should_show_help)
     kb = register_configured_keybinding_no_event(
         config.keybinding.zoom,
         zoom,
         kb,
-        help_label='zoom')
+        help_label='zoom',
+        should_show_help=should_show_help)
     kb = register_configured_keybinding_no_event(
         config.keybinding.toggle_scroll,
         toggle_scroll,
         kb,
-        help_label='toggle scroll')
+        help_label='toggle scroll',
+        should_show_help=should_show_help)
     return kb

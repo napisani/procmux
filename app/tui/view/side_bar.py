@@ -7,6 +7,7 @@ from prompt_toolkit.layout import DynamicContainer, HSplit, ScrollbarMargin, Win
 from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.dimension import D, Dimension
 from prompt_toolkit.widgets import Frame
+from ptterm import Terminal
 
 from app.tui.keybindings import DocumentedKeybindings, register_app_wide_configured_keybindings, \
     register_configured_keybinding_no_event
@@ -155,11 +156,16 @@ class SideBar:
                                                      self._controller.view_docs,
                                                      kb,
                                                      'docs')
+
+        def has_terminal() -> bool:
+            return isinstance(self._controller.current_terminal, Terminal)
         kb = register_app_wide_configured_keybindings(self._controller.config,
                                                       self._controller.switch_focus,
                                                       self._controller.zoom,
                                                       self._controller.toggle_scroll,
-                                                      kb)
+                                                      kb,
+                                                      has_terminal
+                                                      )
         return kb
 
     def __pt_container__(self):
