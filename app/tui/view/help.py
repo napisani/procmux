@@ -29,11 +29,7 @@ class HelpPanel:
             full_list[0::2] = lst
             return full_list
 
-        result = [
-            self._get_key_combo_text(help_)
-            for help_ in self._controller.focused_keybinding_help
-            if help_.should_display()
-        ]
+        result = [self._get_key_combo_text(help_) for help_ in self._controller.get_app_keybindings().help_docs]
         if result:
             result = intersperse(result, delimiter)
         return merge_formatted_text(result)

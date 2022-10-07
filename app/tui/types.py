@@ -1,6 +1,6 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Any, Callable, List
+from typing import Any
 
 from app.config import ProcessConfig
 
@@ -13,6 +13,18 @@ class FocusWidget(Enum):
     DOCS = auto()
 
 
+@dataclass(frozen=True)
+class FocusTarget:
+    widget: FocusWidget
+    element: Any
+
+
+@dataclass(frozen=True)
+class KeybindingDocumentation:
+    label: str
+    help: str
+
+
 @dataclass
 class Process:
     index: int
@@ -20,17 +32,3 @@ class Process:
     name: str
     running: bool = False
     scroll_mode: bool = False
-
-
-@dataclass(frozen=True)
-class KeybindingDocumentation:
-    label: str
-    help: str
-    should_display: Callable[[], bool] = field(default_factory=lambda: lambda: True)
-
-
-@dataclass(frozen=True)
-class FocusTarget:
-    widget: FocusWidget
-    element: Any
-    keybinding_help: List[KeybindingDocumentation] = field(default_factory=lambda: [])

@@ -2,7 +2,6 @@ from typing import Any, Callable, List, Optional
 
 from prompt_toolkit.key_binding import KeyBindings
 
-from app.config import ProcMuxConfig
 from app.tui.types import KeybindingDocumentation
 
 
@@ -11,75 +10,29 @@ class DocumentedKeybindings(KeyBindings):
         super().__init__(*args, **kwargs)
         self.help_docs: List[KeybindingDocumentation] = []
 
-    def add_keybinding_help_doc(self,
-                                label: str,
-                                keys: List[str],
-                                should_show_help: Optional[Callable[[], bool]] = None):
+    def add_keybinding_help_doc(self, label: str, keys: List[str]):
         if keys:
-            self.help_docs.append(KeybindingDocumentation(
-                label=label,
-                help=keys[0],
-                should_display=should_show_help if should_show_help else (lambda: True)))
+            self.help_docs.append(KeybindingDocumentation(label=label, help=keys[0]))
 
+    def register_configured_keybinding_sans_event(self,
+                                                  keys: List[str],
+                                                  handler: Callable[[], None],
+                                                  help_label: Optional[str] = None,
+                                                  ):
+        self.register_configured_keybinding(keys, lambda _: handler(), help_label=help_label)
 
-def register_configured_keybinding_no_event(
-        keys: List[str],
-        handler: Callable[[], None],
-        kb: DocumentedKeybindings,
-        help_label: Optional[str] = None,
-        should_show_help: Optional[Callable[[], bool]] = None) -> DocumentedKeybindings:
-    def _handler(_) -> None:
-        handler()
+    def register_configured_keybinding(self,
+                                       keys: List[str],
+                                       handler: Callable[[Any], None],
+                                       help_label: Optional[str] = None
+                                       ):
+        if 'disabled' in keys:
+            return
 
-    return register_configured_keybinding(keys, _handler, kb,
-                                          help_label=help_label,
-                                          should_show_help=should_show_help)
+        for keybinding in keys:
+            @self.add(keybinding)
+            def _(event) -> None:
+                handler(event)
 
-
-def register_configured_keybinding(
-        keys: List[str],
-        handler: Callable[[Any], None],
-        kb: DocumentedKeybindings,
-        help_label: Optional[str] = None,
-        should_show_help: Optional[Callable[[], bool]] = None) -> DocumentedKeybindings:
-    if 'disabled' in keys:
-        return kb
-
-    for keybinding in keys:
-        @kb.add(keybinding)
-        def _(event) -> None:
-            handler(event)
-    if help_label:
-        kb.add_keybinding_help_doc(label=help_label,
-                                   keys=keys,
-                                   should_show_help=should_show_help)
-
-    return kb
-
-
-def register_app_wide_configured_keybindings(config: ProcMuxConfig,
-                                             switch_focus: Callable[[], None],
-                                             zoom: Callable[[], None],
-                                             toggle_scroll: Callable[[], None],
-                                             kb: DocumentedKeybindings,
-                                             should_show_help: Optional[Callable[[], bool]] = None
-                                             ) -> DocumentedKeybindings:
-    kb = register_configured_keybinding_no_event(
-        config.keybinding.switch_focus,
-        switch_focus,
-        kb,
-        help_label='switch_focus',
-        should_show_help=should_show_help)
-    kb = register_configured_keybinding_no_event(
-        config.keybinding.zoom,
-        zoom,
-        kb,
-        help_label='zoom',
-        should_show_help=should_show_help)
-    kb = register_configured_keybinding_no_event(
-        config.keybinding.toggle_scroll,
-        toggle_scroll,
-        kb,
-        help_label='toggle scroll',
-        should_show_help=should_show_help)
-    return kb
+        if help_label:
+            self.add_keybinding_help_doc(label=help_label, keys=keys)

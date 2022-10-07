@@ -23,6 +23,10 @@ class ProcessState:
                 return True
         return False
 
+    @property
+    def filter_text(self) -> str:
+        return self._filter
+
     def select_first_process(self):
         if self.filtered_process_list:
             self.selected_process = self.filtered_process_list[0]

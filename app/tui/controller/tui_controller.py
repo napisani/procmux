@@ -1,6 +1,6 @@
 from copy import deepcopy
 from functools import cached_property
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from prompt_toolkit.application import get_app
 from prompt_toolkit.buffer import Buffer
@@ -11,9 +11,10 @@ from ptterm import Terminal
 from app.config import ProcMuxConfig
 from app.log import logger
 from app.tui.controller.terminal_controller import TerminalController
+from app.tui.keybindings import DocumentedKeybindings
 from app.tui.state.process_state import ProcessState
 from app.tui.state.tui_state import TUIState
-from app.tui.types import FocusTarget, FocusWidget, KeybindingDocumentation, Process
+from app.tui.types import FocusTarget, FocusWidget, Process
 from app.util.interpolation import Interpolation
 
 
@@ -25,6 +26,7 @@ class TUIController:
         self._process_state: ProcessState = ProcessState(config)
         self._terminal_controllers: Dict[int, TerminalController] = \
             self._create_terminal_controllers(config, self._process_state.process_list)
+        self._filter_change_handlers: List[Callable[[str], None]] = []
 
     @cached_property
     def config(self) -> ProcMuxConfig:
@@ -138,8 +140,7 @@ class TUIController:
                                            process.config.interpolations,
                                            start_cmd,
                                            finish_interpolating)
-            kb = form.get_keybindings()
-            self.register_focusable_element(FocusWidget.TERMINAL_COMMAND_INPUTS, form, kb.help_docs)
+            self.register_focusable_element(FocusWidget.TERMINAL_COMMAND_INPUTS, form)
             self._tui_state.start_interpolating(form)
             self.focused_widget = FocusWidget.TERMINAL_COMMAND_INPUTS
             return
@@ -169,13 +170,6 @@ class TUIController:
         self._set_focus(self._tui_state.get_focus_element(value))
 
     @property
-    def focused_keybinding_help(self) -> List[KeybindingDocumentation]:
-        target = self._focused_target()
-        if not target or not target.keybinding_help:
-            return []
-        return target.keybinding_help
-
-    @property
     def is_focused_on_free_form_input(self):
         return self.focused_widget == FocusWidget.SIDE_BAR_FILTER
 
@@ -184,15 +178,8 @@ class TUIController:
         if app and element:
             app.layout.focus(element)
 
-    def register_focusable_element(
-            self,
-            widget: FocusWidget,
-            element: Any,
-            keybinding_help: Optional[List[KeybindingDocumentation]] = None):
-        self._tui_state.register_focusable_element(
-            FocusTarget(widget=widget,
-                        element=element,
-                        keybinding_help=keybinding_help if keybinding_help else []))
+    def register_focusable_element(self, widget: FocusWidget, element: Any):
+        self._tui_state.register_focusable_element(FocusTarget(widget=widget, element=element))
 
     def deregister_focusable_element(self, widget: FocusWidget):
         self._tui_state.deregister_focusable_element(widget)
@@ -264,21 +251,48 @@ class TUIController:
     def sidebar_down(self):
         self.move_process_selection(1)
 
+    def switch_focus(self):
+        logger.info('in switch_focus')
+        if not self.is_focused_on_free_form_input:
+            self.toggle_sidebar_terminal_focus()
+
+    # /Sidebar
+
+    # Filter
+
+    def register_filter_change_handler(self, handler: Callable[[str], None]):
+        self._filter_change_handlers.append(handler)
+
+    def on_filter_change(self):
+        for handler in self._filter_change_handlers:
+            handler(self._process_state.filter_text)
+
     def start_filter(self):
         logger.info('in start_filter')
         self._tui_state.filter_mode = True
-        self._process_state.selected_process = None
+        self._process_state.apply_filter('')
+        self.on_filter_change()
         self.focused_widget = FocusWidget.SIDE_BAR_FILTER
 
     def update_filter(self, buffer: Buffer):
         logger.info(f'in update filter: {buffer.text}')
         self._process_state.apply_filter(buffer.text)
+        self.on_filter_change()
 
-    def exit_filter(self, search_text: str):
-        logger.info(f'in exit_filter: {search_text}')
-        self._process_state.apply_filter(search_text)
+    def close_filter(self):
+        logger.info('in close_filter')
         self._tui_state.filter_mode = False
         self.focus_to_sidebar()
+
+    def cancel_filter(self):
+        logger.info('in cancel_filter')
+        self._process_state.apply_filter('')
+        self.on_filter_change()
+        self.close_filter()
+
+    # /Filter
+
+    # Docs
 
     def view_docs(self):
         logger.info('in view_docs')
@@ -296,10 +310,9 @@ class TUIController:
         else:
             self.focused_widget = FocusWidget.SIDE_BAR_SELECT
 
-    def switch_focus(self):
-        logger.info('in switch_focus')
-        if not self.is_focused_on_free_form_input:
-            self.toggle_sidebar_terminal_focus()
+    # /Docs
+
+    # Zoom
 
     def zoom(self):
         logger.info('in zoom')
@@ -316,6 +329,8 @@ class TUIController:
             if self.focus_to_current_terminal():
                 logger.info('setting zoomed_in to True')
                 self._tui_state.zoomed_in = True
+
+    # /Zoom
 
     # /Sidebar
 
@@ -335,6 +350,89 @@ class TUIController:
                 self.focus_to_sidebar()
 
     # /Scroll
+
+    # Keybindings
+
+    def get_app_keybindings(self) -> DocumentedKeybindings:
+        kb = DocumentedKeybindings()
+        if self.focused_widget == FocusWidget.DOCS:
+            self._add_docs_keybindings(kb)
+        if self.focused_widget == FocusWidget.SIDE_BAR_FILTER:
+            self._add_filter_keybindings(kb)
+        if self.focused_widget == FocusWidget.SIDE_BAR_SELECT:
+            self._add_side_bar_keybindings(kb)
+            self._add_terminal_keybindings(kb)
+        if self.focused_widget == FocusWidget.TERMINAL:
+            self._add_terminal_keybindings(kb)
+        return kb
+
+    def _add_docs_keybindings(self, kb: DocumentedKeybindings):
+        kb.register_configured_keybinding_no_event(
+            self.config.keybinding.docs,
+            self.close_docs,
+            'close docs')
+
+    def _add_filter_keybindings(self, kb: DocumentedKeybindings):
+        kb.register_configured_keybinding_sans_event(
+            self.config.keybinding.filter,
+            self.cancel_filter,
+            'exit filter')
+        kb.register_configured_keybinding_sans_event(
+            self.config.keybinding.submit_filter,
+            self.close_filter,
+            'submit filter')
+
+    def _add_side_bar_keybindings(self, kb: DocumentedKeybindings):
+        kb.register_configured_keybinding_sans_event(
+            self.config.keybinding.up,
+            self.sidebar_up,
+            'up')
+        kb.register_configured_keybinding_sans_event(
+            self.config.keybinding.down,
+            self.sidebar_down,
+            'down')
+        kb.register_configured_keybinding_sans_event(
+            self.config.keybinding.docs,
+            self.view_docs,
+            'docs')
+
+        kb.register_configured_keybinding_sans_event(
+            self.config.keybinding.filter,
+            self.start_filter,
+            'filter')
+
+        if self.selected_process and self.selected_process.running:
+            kb.register_configured_keybinding_sans_event(
+                self.config.keybinding.start,
+                self.start_process,
+                'start')
+            kb.register_configured_keybinding_sans_event(
+                self.config.keybinding.stop,
+                self.stop_process,
+                'stop')
+            kb.register_configured_keybinding_sans_event(
+                self.config.keybinding.quit,
+                self.quit,
+                'quit')
+
+        return kb
+
+    def _add_terminal_keybindings(self, kb: DocumentedKeybindings):
+        if isinstance(self.current_terminal, Terminal):
+            kb.register_configured_keybinding_sans_event(
+                self.config.keybinding.switch_focus,
+                self.switch_focus,
+                'switch focus')
+            kb.register_configured_keybinding_sans_event(
+                self.config.keybinding.zoom,
+                self.zoom,
+                'zoom')
+            kb.register_configured_keybinding_sans_event(
+                self.config.keybinding.toggle_scroll,
+                self.toggle_scroll,
+                'toggle scroll')
+
+    # /Keybindings
 
     def _create_terminal_controllers(self,
                                      config: ProcMuxConfig,

@@ -5,7 +5,7 @@ from prompt_toolkit.layout import HSplit, VSplit
 from prompt_toolkit.widgets import Button, TextArea
 
 from app.log import logger
-from app.tui.keybindings import DocumentedKeybindings, register_configured_keybinding
+from app.tui.keybindings import DocumentedKeybindings
 from app.tui.controller.tui_controller import TUIController
 from app.util.interpolation import Interpolation
 
