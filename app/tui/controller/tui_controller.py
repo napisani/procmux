@@ -391,29 +391,32 @@ class TUIController:
             self.config.keybinding.down,
             self.sidebar_down,
             'down')
+
+        if self.selected_process and self.selected_process.running:
+            kb.register_configured_keybinding_sans_event(
+                self.config.keybinding.stop,
+                self.stop_process,
+                'stop')
+        else:
+            kb.register_configured_keybinding_sans_event(
+                self.config.keybinding.start,
+                self.start_process,
+                'start')
+
         kb.register_configured_keybinding_sans_event(
-            self.config.keybinding.docs,
-            self.view_docs,
-            'docs')
+            self.config.keybinding.quit,
+            self.quit,
+            'quit')
 
         kb.register_configured_keybinding_sans_event(
             self.config.keybinding.filter,
             self.start_filter,
             'filter')
 
-        if self.selected_process and self.selected_process.running:
-            kb.register_configured_keybinding_sans_event(
-                self.config.keybinding.start,
-                self.start_process,
-                'start')
-            kb.register_configured_keybinding_sans_event(
-                self.config.keybinding.stop,
-                self.stop_process,
-                'stop')
-            kb.register_configured_keybinding_sans_event(
-                self.config.keybinding.quit,
-                self.quit,
-                'quit')
+        kb.register_configured_keybinding_sans_event(
+            self.config.keybinding.docs,
+            self.view_docs,
+            'docs')
 
         return kb
 
