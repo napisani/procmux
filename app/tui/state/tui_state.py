@@ -1,6 +1,7 @@
 from typing import Any, List, Optional
 
 from app.config import ProcMuxConfig
+from app.tui.keybindings import DocumentedKeybindings
 from app.tui.types import FocusTarget, FocusWidget
 
 
@@ -12,20 +13,20 @@ class TUIState:
         self.docs_open: bool = False
         self.quitting: bool = False
         self._focus_targets: List[FocusTarget] = []
-        self._interpolating: bool = False
-        self._command_form: Optional[Any] = None
+        self._modal_open: bool = False
+        self._modal_keybindings: DocumentedKeybindings = DocumentedKeybindings()
 
     @property
     def focus_targets(self) -> List[FocusTarget]:
         return self._focus_targets
 
     @property
-    def interpolating(self) -> bool:
-        return self._interpolating
+    def modal_open(self) -> bool:
+        return self._modal_open
 
     @property
-    def command_form(self) -> Optional[Any]:
-        return self._command_form
+    def modal_keybindings(self) -> DocumentedKeybindings:
+        return self._modal_keybindings
 
     def get_focus_element(self, widget: FocusWidget) -> Optional[Any]:
         return next((ft.element for ft in self._focus_targets if ft.widget == widget), None)
@@ -36,10 +37,10 @@ class TUIState:
     def deregister_focusable_element(self, widget: FocusWidget):
         self._focus_targets = [fe for fe in self._focus_targets if fe.widget != widget]
 
-    def start_interpolating(self, command_form: Any):
-        self._command_form = command_form
-        self._interpolating = True
+    def open_modal(self, kb: DocumentedKeybindings = DocumentedKeybindings()):
+        self._modal_open = True
+        self._modal_keybindings = kb
 
-    def stop_interpolating(self):
-        self._interpolating = False
-        self._command_form = None
+    def close_modal(self):
+        self._modal_open = False
+        self._modal_keybindings = DocumentedKeybindings()
