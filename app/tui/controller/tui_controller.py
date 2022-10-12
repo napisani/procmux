@@ -379,7 +379,7 @@ class TUIController:
         return kb
 
     def _add_docs_keybindings(self, kb: DocumentedKeybindings):
-        kb.register_configured_keybinding_no_event(
+        kb.register_configured_keybinding_sans_event(
             self.config.keybinding.docs,
             self.close_docs,
             'close docs')
