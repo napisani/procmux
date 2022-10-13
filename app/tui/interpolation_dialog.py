@@ -111,7 +111,7 @@ class InterpolationDialog():
     def start_interpolation(self):
         app = get_app()
         if app and self._text_inputs:
-            self._float_container.floats = [Float(Frame(self._container))]
+            self._float_container.floats = [Float(Frame(self._container, self._process.name))]
             app.layout.focus(self._text_inputs[0])
         else:
             self._on_cancel()
