@@ -6,7 +6,6 @@ from prompt_toolkit.formatted_text.base import FormattedText
 from prompt_toolkit.layout import FormattedTextControl, Window
 from prompt_toolkit.widgets import Frame
 
-from app.tui.keybindings import DocumentedKeybindings, register_configured_keybinding_no_event
 from app.tui.types import FocusWidget
 from app.tui.controller.tui_controller import TUIController
 
@@ -14,24 +13,15 @@ from app.tui.controller.tui_controller import TUIController
 class DocsDialog:
     def __init__(self, controller: TUIController):
         self._controller: TUIController = controller
-        kb = self._get_key_bindings()
         self._container: Frame = Frame(
             title=self._get_title,
-            key_bindings=kb,
             body=Window(
                 content=FormattedTextControl(
                     text=self._get_formatted_text,
                     focusable=True,
                     show_cursor=False
                 )))
-        self._controller.register_focusable_element(FocusWidget.DOCS, self._container, keybinding_help=kb.help_docs)
-
-    def _get_key_bindings(self) -> DocumentedKeybindings:
-        return register_configured_keybinding_no_event(
-            self._controller.config.keybinding.docs,
-            self._controller.close_docs,
-            DocumentedKeybindings(),
-            'docs')
+        self._controller.register_focusable_element(FocusWidget.DOCS, self._container)
 
     def _get_title(self) -> str:
         process = self._controller.selected_process

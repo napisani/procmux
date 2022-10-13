@@ -13,13 +13,13 @@ def _get_config_yaml(log_file: str) -> str:
     layout:
       hide_help: false
     keybinding:
-      switch_focus: 'w' 
-      up: 'k' 
+      switch_focus: 'w'
+      up: 'k'
       down: 'j'
     procs:
       "tail log":
         shell: "tail -f {log_file}"
-        autostart: true 
+        autostart: true
         description: 'tail the app log'
         docs: long description for tail log
         meta_tags:
@@ -27,7 +27,7 @@ def _get_config_yaml(log_file: str) -> str:
       "print envs":
         shell: "echo $SOME_TEST"
         description: 'this command will print env vars that are configured in the child pid'
-        env: 
+        env:
           SOME_TEST: "ENV_VARS_ARE_WORKING"
         categories:
           - 'echo'
@@ -43,7 +43,7 @@ def _get_config_yaml(log_file: str) -> str:
           - 'echo'
       "interpolate":
         shell: "echo '<first_echo:some default>' && echo '<second_echo>'"
-        autostart: false 
+        autostart: false
         description: 'test interpolation'
 
     """
@@ -116,18 +116,29 @@ def test_tui_shows_terminal_help():
         assert '<x> stop' not in full_screen
         assert '<w> switch' in full_screen
 
-    preform_test_within_tui(keys=['w'], assertion=assert_terminal_help_bar)
+    preform_test_within_tui(keys=['j', 'j', 'w'], assertion=assert_terminal_help_bar)
 
 
 def test_tui_filter():
     def assert_filter(screen):
         full_screen = join_screen_to_str(screen)
         assert '<s> start' not in full_screen
-        assert '<enter> filter' in full_screen
+        assert '<enter> submit filter' in full_screen
         assert 'test long running proc' in full_screen
         assert 'tail log' not in full_screen
 
     preform_test_within_tui(keys=['/', *list('test long run')], assertion=assert_filter)
+
+
+def test_tui_filter_cancel():
+    def assert_filter(screen):
+        full_screen = join_screen_to_str(screen)
+        assert '<s> start' in full_screen
+        assert '<enter> submit filter' not in full_screen
+        assert 'test long running proc' in full_screen
+        assert 'tail log' in full_screen
+
+    preform_test_within_tui(keys=['/', *list('test long run'), '/'], assertion=assert_filter)
 
 
 def test_tui_env_vars_in_child_pid():
@@ -135,7 +146,7 @@ def test_tui_env_vars_in_child_pid():
         full_screen = join_screen_to_str(screen)
         assert 'ENV_VARS_ARE_WORKING' in full_screen
 
-    preform_test_within_tui(keys=['/', *list('print env'), '/', 'j', 's'], assertion=assert_env_vars_printed)
+    preform_test_within_tui(keys=['/', *list('print env'), '\n', 's'], assertion=assert_env_vars_printed)
 
 
 def test_tui_filter_for_missing_process_shows_no_results():
@@ -146,7 +157,7 @@ def test_tui_filter_for_missing_process_shows_no_results():
         assert 'vim' not in full_screen
         assert 'test long running proc' not in full_screen
 
-    preform_test_within_tui(keys=['/', *list('NEVER'), '/', 'j'], assertion=assert_no_results)
+    preform_test_within_tui(keys=['/', *list('NEVER'), '\n', 'j'], assertion=assert_no_results)
 
 
 def test_tui_filter_against_category():
@@ -156,7 +167,7 @@ def test_tui_filter_against_category():
         assert 'print envs' in full_screen
         assert 'vim' not in full_screen
 
-    preform_test_within_tui(keys=['/', *list('cat:echo'), '/', 'j'], assertion=assert_no_results)
+    preform_test_within_tui(keys=['/', *list('cat:echo'), '\n', 'j'], assertion=assert_no_results)
 
 
 def test_tui_filter_against_meta_tags():
@@ -167,7 +178,7 @@ def test_tui_filter_against_meta_tags():
         assert 'vim' not in full_screen
         assert 'tail log' in full_screen
 
-    preform_test_within_tui(keys=['/', *list('follow'), '/', 'j'], assertion=assert_no_results)
+    preform_test_within_tui(keys=['/', *list('follow'), '\n', 'j'], assertion=assert_no_results)
 
 
 def test_long_docs_get_displayed():
@@ -176,7 +187,7 @@ def test_long_docs_get_displayed():
         assert 'long description for tail log' in full_screen
         assert 'print envs' not in full_screen
 
-    preform_test_within_tui(keys=['/', *list('tail log'), '/', 'j', '?'], assertion=assert_no_results)
+    preform_test_within_tui(keys=['/', *list('tail log'), '\n', 'j', '?'], assertion=assert_no_results)
 
 
 def test_tui_autostart():
@@ -189,4 +200,3 @@ def test_tui_autostart():
             raise RuntimeError('Active tail log process not found')
 
     preform_test_within_tui(keys=[], assertion=assert_autostart)
-
