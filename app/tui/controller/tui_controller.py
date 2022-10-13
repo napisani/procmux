@@ -4,14 +4,15 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from prompt_toolkit.application import get_app
 from prompt_toolkit.buffer import Buffer
-from prompt_toolkit.layout import Window
+from prompt_toolkit.layout import FloatContainer, Window
 from prompt_toolkit.mouse_events import MouseEvent, MouseEventType
 from ptterm import Terminal
 
 from app.config import ProcMuxConfig
 from app.log import logger
-from app.tui.controller.terminal_controller import TerminalController
+from app.tui.interpolation_dialog import InterpolationDialog
 from app.tui.keybindings import DocumentedKeybindings
+from app.tui.controller.terminal_controller import TerminalController
 from app.tui.state.process_state import ProcessState
 from app.tui.state.tui_state import TUIState
 from app.tui.types import FocusTarget, FocusWidget, Process
@@ -19,14 +20,18 @@ from app.util.interpolation import Interpolation
 
 
 class TUIController:
-    def __init__(self, config: ProcMuxConfig, terminal_placeholder: Window, command_form_ctor):
+    def __init__(self, config: ProcMuxConfig, terminal_placeholder: Window, float_container: FloatContainer):
         self._terminal_placeholder = terminal_placeholder
-        self._command_form_ctor = command_form_ctor
+        self._float_container = float_container
         self._tui_state: TUIState = TUIState(config)
         self._process_state: ProcessState = ProcessState(config)
         self._terminal_controllers: Dict[int, TerminalController] = \
             self._create_terminal_controllers(config, self._process_state.process_list)
         self._filter_change_handlers: List[Callable[[str], None]] = []
+
+    @property
+    def float_container(self) -> FloatContainer:
+        return self._float_container
 
     @cached_property
     def config(self) -> ProcMuxConfig:
@@ -49,8 +54,8 @@ class TUIController:
         return self._tui_state.quitting
 
     @property
-    def interpolating(self) -> bool:
-        return self._tui_state.interpolating
+    def modal_open(self) -> bool:
+        return self._tui_state.modal_open
 
     # Processes
 
@@ -110,9 +115,7 @@ class TUIController:
         return None
 
     @property
-    def current_terminal(self) -> Union[Terminal, Window, Any]:
-        if self.interpolating and self._tui_state._command_form:
-            return self._tui_state._command_form
+    def current_terminal(self) -> Union[Terminal, Window]:
         if self.current_terminal_controller and self.current_terminal_controller.terminal:
             return self.current_terminal_controller.terminal
         return self._terminal_placeholder
@@ -122,35 +125,41 @@ class TUIController:
         if self.quitting:
             return  # if procmux is in the process of quitting, don't start a new process
 
-        def finish_interpolating():
-            self._tui_state.stop_interpolating()
-            self.deregister_focusable_element(FocusWidget.TERMINAL_COMMAND_INPUTS)
-            self.focus_to_sidebar()
+        terminal_controller = self._terminal_controllers[process.index]
+        if terminal_controller:
+            run_in_background = self.selected_process is None or self.selected_process.index != process.index
+            interpolations: List[Interpolation] = []
 
-        def start_cmd(final_interpolations: Optional[List[Interpolation]] = None):
-            if self.interpolating:
-                finish_interpolating()
-            terminal_controller = self._terminal_controllers[process.index]
-            if terminal_controller:
-                run_in_background = self.selected_process is None or self.selected_process.index != process.index
-                terminal_controller.spawn_terminal(run_in_background, final_interpolations)
+            if len(process.config.interpolations) > 0:
+                id = InterpolationDialog(process,
+                                         run_in_background,
+                                         self.config,
+                                         self.float_container,
+                                         self.on_finish_interpolation)
+                self._tui_state.open_modal(id.get_keybindings())
+                id.start_interpolation()
+                return
 
-        if len(process.config.interpolations) > 0:
-            form = self._command_form_ctor(self,
-                                           process.config.interpolations,
-                                           start_cmd,
-                                           finish_interpolating)
-            self.register_focusable_element(FocusWidget.TERMINAL_COMMAND_INPUTS, form)
-            self._tui_state.start_interpolating(form)
-            self.focused_widget = FocusWidget.TERMINAL_COMMAND_INPUTS
-            return
-        start_cmd()
+            terminal_controller.spawn_terminal(run_in_background, interpolations)
+
+    def on_finish_interpolation(self,
+                                process: Process,
+                                run_in_background: bool,
+                                interpolations: Optional[List[Interpolation]]
+                                ):
+        self._tui_state.close_modal()
+        self.focus_to_sidebar()
+        terminal_controller = self._terminal_controllers[process.index]
+        if interpolations and terminal_controller:
+            terminal_controller.spawn_terminal(run_in_background, interpolations)
 
     # /Terminal
 
     # Focus
 
     def _focused_target(self) -> Optional[FocusTarget]:
+        if self.modal_open:
+            return None
         app = get_app()
         if app:
             for target in self._tui_state.focus_targets:
@@ -186,7 +195,7 @@ class TUIController:
 
     def focus_to_current_terminal(self) -> bool:
         logger.info('focusing on current terminal')
-        if self.current_terminal:
+        if isinstance(self.current_terminal, Terminal):
             application = get_app()
             if application:
                 logger.info('focusing on selected process terminal')
@@ -354,6 +363,9 @@ class TUIController:
     # Keybindings
 
     def get_app_keybindings(self) -> DocumentedKeybindings:
+        if self.modal_open:
+            return self._tui_state.modal_keybindings
+
         kb = DocumentedKeybindings()
         if self.focused_widget == FocusWidget.DOCS:
             self._add_docs_keybindings(kb)
@@ -367,7 +379,7 @@ class TUIController:
         return kb
 
     def _add_docs_keybindings(self, kb: DocumentedKeybindings):
-        kb.register_configured_keybinding_no_event(
+        kb.register_configured_keybinding_sans_event(
             self.config.keybinding.docs,
             self.close_docs,
             'close docs')

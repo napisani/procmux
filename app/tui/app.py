@@ -2,12 +2,11 @@ from __future__ import unicode_literals
 
 from prompt_toolkit.application import Application
 from prompt_toolkit.key_binding import DynamicKeyBindings
-from prompt_toolkit.layout import ConditionalContainer, DynamicContainer, HSplit, Layout, VSplit, Window
+from prompt_toolkit.layout import ConditionalContainer, DynamicContainer, FloatContainer, HSplit, Layout, VSplit, Window
 from prompt_toolkit.styles import Style
 
 from app.config import ProcMuxConfig
 from app.tui.controller.tui_controller import TUIController
-from app.tui.view.command_form import CommandForm
 from app.tui.view.docs import DocsDialog
 from app.tui.view.help import HelpPanel
 from app.tui.view.process_description import ProcessDescriptionPanel
@@ -20,7 +19,10 @@ def start_tui(config: ProcMuxConfig):
                                   width=config.style.width_100,
                                   height=config.style.height_100)
 
-    controller = TUIController(config, terminal_placeholder, CommandForm)
+    dynamic_container = DynamicContainer(get_container=lambda: None)
+    float_container = FloatContainer(content=dynamic_container, floats=[])
+
+    controller = TUIController(config, terminal_placeholder, float_container)
 
     side_bar = SideBar(controller)
 
@@ -49,11 +51,10 @@ def start_tui(config: ProcMuxConfig):
         elif controller.docs_open:
             return docs_layout_container
         return main_layout_container
+    dynamic_container.get_container = _get_layout_container
 
     application = Application(
-        layout=Layout(
-            container=DynamicContainer(get_container=_get_layout_container),
-            focused_element=controller.focused_widget),
+        layout=Layout(container=controller.float_container, focused_element=side_bar),
         full_screen=True,
         mouse_support=controller.config.enable_mouse,
         key_bindings=DynamicKeyBindings(get_key_bindings=controller.get_app_keybindings),
