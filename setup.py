@@ -6,7 +6,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
     requirements = fh.read()
 setup(
     name='procmux',
-    version='1.0.8',
+    version='1.0.9',
     author='Nick Pisani',
     author_email='napisani@yahoo.com',
     license='MIT',
