@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field, fields
 import os
+from dataclasses import dataclass, field, fields
 from typing import Dict, List, Literal, Optional, OrderedDict, Union
 
 import hiyapyco
@@ -122,8 +122,15 @@ class KeybindingConfig:
 
 
 @dataclass
+class SignalServerConfig:
+    port: int = 9792 
+    host: str = 'localhost'
+    enable: bool = False
+
+@dataclass
 class ProcMuxConfig:
     procs: Dict[str, ProcessConfig] = field(default_factory=lambda: {})
+    signal_server: SignalServerConfig = SignalServerConfig()
     style: StyleConfig = StyleConfig()
     keybinding: KeybindingConfig = KeybindingConfig()
     shell_cmd: List[str] = field(default_factory=lambda: [os.environ['SHELL'], '-c'])
@@ -146,6 +153,8 @@ class ProcMuxConfig:
             self.keybinding = KeybindingConfig(**self.keybinding)
         if is_dict_like(self.layout):
             self.layout = LayoutConfig(**self.layout)
+        if is_dict_like(self.signal_server):
+            self.signal_server = SignalServerConfig(**self.signal_server)
 
 
 def parse_config(config_file: str,

@@ -10,9 +10,10 @@ from ptterm import Terminal
 
 from app.config import ProcMuxConfig
 from app.log import logger
+from app.server.server import start_server
+from app.tui.controller.terminal_controller import TerminalController
 from app.tui.interpolation_dialog import InterpolationDialog
 from app.tui.keybindings import DocumentedKeybindings
-from app.tui.controller.terminal_controller import TerminalController
 from app.tui.state.process_state import ProcessState
 from app.tui.state.tui_state import TUIState
 from app.tui.types import FocusTarget, FocusWidget, Process
@@ -28,6 +29,16 @@ class TUIController:
         self._terminal_controllers: Dict[int, TerminalController] = \
             self._create_terminal_controllers(config, self._process_state.process_list)
         self._filter_change_handlers: List[Callable[[str], None]] = []
+
+        self._server_controller = None
+        if config.signal_server.enable:
+            def _start_process_and_refresh(process: Process): 
+                self.start_process(process)
+                self.refresh_app()
+            self._server_controller = start_server(config, 
+                                                   self._process_state, 
+                                                   self._terminal_controllers, 
+                                                   _start_process_and_refresh)
 
     @property
     def float_container(self) -> FloatContainer:
@@ -471,6 +482,11 @@ class TUIController:
         if not application or self.quitting:
             return  # avoid registering process done handler multiple times
         self._tui_state.quitting = True
+
+        # kill the signal server if it's running
+        if self._server_controller:
+            self._server_controller.stop()
+
         logger.info('quit - sending kill signals')
         for tc in self._terminal_controllers.values():
             tc.stop_process()

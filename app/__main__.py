@@ -1,5 +1,4 @@
 import logging
-
 from app.config import ProcMuxConfig
 from app.log import formatter, logger
 

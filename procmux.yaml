@@ -126,3 +126,5 @@ procs:
     shell: "echo '<first_echo:some default>' && echo '<second_echo>'"
     autostart: false 
     description: 'test interpolation'
+signal_server:
+  enable: true
