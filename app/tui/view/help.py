@@ -11,15 +11,14 @@ from app.tui.controller.tui_controller import TUIController
 
 
 class HelpPanel:
+
     def __init__(self, controller: TUIController):
         self._controller: TUIController = controller
-        self._container: Window = Window(
-            height=1,
-            content=FormattedTextControl(
-                text=self._get_formatted_text,
-                focusable=False,
-                show_cursor=False
-            ))
+        self._container: Window = Window(height=1,
+                                         content=FormattedTextControl(
+                                             text=self._get_formatted_text,
+                                             focusable=False,
+                                             show_cursor=False))
 
     def _get_formatted_text(self) -> Callable[[], FormattedText]:
         delimiter = " | "
@@ -29,7 +28,10 @@ class HelpPanel:
             full_list[0::2] = lst
             return full_list
 
-        result = [self._get_key_combo_text(help_) for help_ in self._controller.get_app_keybindings().help_docs]
+        result = [
+            self._get_key_combo_text(help_)
+            for help_ in self._controller.get_app_keybindings().help_docs
+        ]
         if result:
             result = intersperse(result, delimiter)
         return merge_formatted_text(result)

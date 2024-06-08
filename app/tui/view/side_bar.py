@@ -19,16 +19,17 @@ class SideBar:
         self._controller: TUIController = controller
         self._fixed_width: int = self._controller.config.layout.processes_list_width
 
-        self._filter_buffer: Buffer = Buffer(on_text_changed=self._controller.update_filter)
-        self._buffer_control: BufferControl = BufferControl(buffer=self._filter_buffer)
+        self._filter_buffer: Buffer = Buffer(
+            on_text_changed=self._controller.update_filter)
+        self._buffer_control: BufferControl = BufferControl(
+            buffer=self._filter_buffer)
         self._list_control: FormattedTextControl = FormattedTextControl(
-            text=self._get_text_fragments,
-            show_cursor=False,
-            focusable=True
-        )
+            text=self._get_text_fragments, show_cursor=False, focusable=True)
 
-        self._controller.register_focusable_element(FocusWidget.SIDE_BAR_FILTER, self._buffer_control)
-        self._controller.register_focusable_element(FocusWidget.SIDE_BAR_SELECT, self._list_control)
+        self._controller.register_focusable_element(
+            FocusWidget.SIDE_BAR_FILTER, self._buffer_control)
+        self._controller.register_focusable_element(
+            FocusWidget.SIDE_BAR_SELECT, self._list_control)
         self._controller.register_filter_change_handler(self.on_filter_change)
 
         def _get_filter_container() -> Window:
@@ -50,7 +51,9 @@ class SideBar:
                     style="class:select-box",
                     height=Dimension(min=5),
                     cursorline=True,
-                    right_margins=[ScrollbarMargin(display_arrows=True), ],
+                    right_margins=[
+                        ScrollbarMargin(display_arrows=True),
+                    ],
                 )
             ]))
 
@@ -65,7 +68,8 @@ class SideBar:
             status_fg = self._controller.config.style.status_running_color if process.running else \
                 self._controller.config.style.status_stopped_color
 
-            target_width = self._fixed_width - self._right_padding - len(status)
+            target_width = self._fixed_width - self._right_padding - len(
+                status)
             name = process.name
             if len(name) > target_width:
                 name = name[0:target_width - 3] + '...'
@@ -81,12 +85,11 @@ class SideBar:
                 fg_color = self._controller.config.style.selected_process_color
                 pointer_char = self._controller.config.style.pointer_char
 
-            result.append((
-                f'fg:{fg_color} bg:{bg_color} bold',
-                f'{pointer_char}{name_fixed}',
-                self._controller.on_sidebar_mouse_event
-            ))
-            result.append((f'fg:{status_fg} bg:{bg_color} bold', status, self._controller.on_sidebar_mouse_event))
+            result.append((f'fg:{fg_color} bg:{bg_color} bold',
+                           f'{pointer_char}{name_fixed}',
+                           self._controller.on_sidebar_mouse_event))
+            result.append((f'fg:{status_fg} bg:{bg_color} bold', status,
+                           self._controller.on_sidebar_mouse_event))
             result.append(('', '\n', self._controller.on_sidebar_mouse_event))
 
         return result

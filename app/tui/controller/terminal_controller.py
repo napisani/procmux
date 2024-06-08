@@ -16,11 +16,9 @@ if TYPE_CHECKING:
 
 
 class TerminalController:
-    def __init__(self,
-                 controller: 'TUIController',
-                 config: ProcMuxConfig,
-                 process: Process
-                 ):
+
+    def __init__(self, controller: 'TUIController', config: ProcMuxConfig,
+                 process: Process):
         self._controller: TUIController = controller
         self._config: ProcMuxConfig = config
         self._terminal_state = TerminalState(process)
@@ -56,7 +54,9 @@ class TerminalController:
     def _change_working_directory(self):
         os.chdir(self._process.config.cwd)
 
-    def _get_cmd(self, interpolations: Optional[List[Interpolation]] = None) -> List[str]:
+    def _get_cmd(
+            self,
+            interpolations: Optional[List[Interpolation]] = None) -> List[str]:
         proc_config = self._process.config
         cmd = []
         if proc_config.shell:
@@ -73,7 +73,9 @@ class TerminalController:
             sig_code = getattr(signal, stop_signal)
             try:
                 if hasattr(self.terminal.process.terminal, 'send_signal'):
-                    logger.info(f'stopping process {self._process.name} with defined signal {stop_signal}')
+                    logger.info(
+                        f'stopping process {self._process.name} with defined signal {stop_signal}'
+                    )
                     self.terminal.process.terminal.send_signal(sig_code)
                 else:
                     logger.info(
@@ -81,7 +83,8 @@ class TerminalController:
                         f' - disregarding defined kill sig')
                     self._kill()
             except Exception as e:
-                logger.error(f'failed to kill process: {self._process.name} {e}')
+                logger.error(
+                    f'failed to kill process: {self._process.name} {e}')
 
     def _kill(self):
         if self.is_running and self.terminal:
@@ -89,7 +92,8 @@ class TerminalController:
                 logger.info(f'running kill() on process {self._process.name}')
                 self.terminal.terminal_control.process.kill()
             except Exception as e:
-                logger.error(f'failed to kill process name: {self._process.name} {e}')
+                logger.error(
+                    f'failed to kill process name: {self._process.name} {e}')
 
     def _handle_process_done(self):
         logger.info(f'{self._process.name} is done')
@@ -97,15 +101,20 @@ class TerminalController:
         self._controller.on_process_done(self._process)
 
     def _handle_process_spawned(self):
-        logger.info(f'created terminal {self.terminal} for process {self._process.name}')
+        logger.info(
+            f'created terminal {self.terminal} for process {self._process.name}'
+        )
         self._terminal_state.running = True
         self._controller.on_process_spawned(self._process)
 
-    def spawn_terminal(self, run_in_background: bool, interpolations: Optional[List[Interpolation]] = None):
+    def spawn_terminal(self,
+                       run_in_background: bool,
+                       interpolations: Optional[List[Interpolation]] = None):
         logger.info(f'in spawn terminal for process {self._process.name}')
         if self.is_running:
             logger.info(
-                f'{self._process.name} terminal already running - returning existing terminal - {self.terminal}')
+                f'{self._process.name} terminal already running - returning existing terminal - {self.terminal}'
+            )
             return
 
         def before_exec():
@@ -113,16 +122,20 @@ class TerminalController:
             self._export_env_vars()
             self._adjust_path()
 
-        self._terminal_state.terminal = Terminal(command=self._get_cmd(interpolations),
-                                                 width=self._config.style.width_100,
-                                                 height=self._config.style.height_100,
-                                                 style='class:terminal',
-                                                 before_exec_func=before_exec,
-                                                 done_callback=self._handle_process_done)
+        self._terminal_state.terminal = Terminal(
+            command=self._get_cmd(interpolations),
+            width=self._config.style.width_100,
+            height=self._config.style.height_100,
+            style='class:terminal',
+            before_exec_func=before_exec,
+            done_callback=self._handle_process_done)
         if run_in_background:
-            logger.info(f'rendering ptterm in the background, because {self._process.name} is not actively selected')
+            logger.info(
+                f'rendering ptterm in the background, because {self._process.name} is not actively selected'
+            )
             if self.terminal:
-                self.terminal.terminal_control.create_content(width=100, height=100)
+                self.terminal.terminal_control.create_content(width=100,
+                                                              height=100)
         self._handle_process_spawned()
 
     def on_scroll_mode_change(self, scroll_mode: bool):

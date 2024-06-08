@@ -11,17 +11,17 @@ from app.tui.controller.tui_controller import TUIController
 
 
 class DocsDialog:
+
     def __init__(self, controller: TUIController):
         self._controller: TUIController = controller
         self._container: Frame = Frame(
             title=self._get_title,
             body=Window(
-                content=FormattedTextControl(
-                    text=self._get_formatted_text,
-                    focusable=True,
-                    show_cursor=False
-                )))
-        self._controller.register_focusable_element(FocusWidget.DOCS, self._container)
+                content=FormattedTextControl(text=self._get_formatted_text,
+                                             focusable=True,
+                                             show_cursor=False)))
+        self._controller.register_focusable_element(FocusWidget.DOCS,
+                                                    self._container)
 
     def _get_title(self) -> str:
         process = self._controller.selected_process

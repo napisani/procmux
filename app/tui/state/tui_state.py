@@ -6,6 +6,7 @@ from app.tui.types import FocusTarget, FocusWidget
 
 
 class TUIState:
+
     def __init__(self, config: ProcMuxConfig):
         self.config: ProcMuxConfig = config
         self.zoomed_in: bool = False
@@ -14,7 +15,8 @@ class TUIState:
         self.quitting: bool = False
         self._focus_targets: List[FocusTarget] = []
         self._modal_open: bool = False
-        self._modal_keybindings: DocumentedKeybindings = DocumentedKeybindings()
+        self._modal_keybindings: DocumentedKeybindings = DocumentedKeybindings(
+        )
 
     @property
     def focus_targets(self) -> List[FocusTarget]:
@@ -29,13 +31,17 @@ class TUIState:
         return self._modal_keybindings
 
     def get_focus_element(self, widget: FocusWidget) -> Optional[Any]:
-        return next((ft.element for ft in self._focus_targets if ft.widget == widget), None)
+        return next(
+            (ft.element for ft in self._focus_targets if ft.widget == widget),
+            None)
 
     def register_focusable_element(self, target: FocusTarget):
         self._focus_targets.append(target)
 
     def deregister_focusable_element(self, widget: FocusWidget):
-        self._focus_targets = [fe for fe in self._focus_targets if fe.widget != widget]
+        self._focus_targets = [
+            fe for fe in self._focus_targets if fe.widget != widget
+        ]
 
     def open_modal(self, kb: DocumentedKeybindings = DocumentedKeybindings()):
         self._modal_open = True

@@ -41,7 +41,8 @@ class ProcessConfig:
 
     def validate(self):
         if not self.cmd and not self.shell:
-            raise MisconfigurationError('shell or cmd is required for every proc definition')
+            raise MisconfigurationError(
+                'shell or cmd is required for every proc definition')
 
     @property
     def interpolations(self) -> List[Interpolation]:
@@ -76,8 +77,9 @@ class StyleConfig:
 
     @property
     def color_depth(
-            self
-    ) -> Union[Literal['DEPTH_1_BIT'], Literal['DEPTH_4_BIT'], Literal['DEPTH_8_BIT'], Literal['DEPTH_24_BIT']]:
+        self
+    ) -> Union[Literal['DEPTH_1_BIT'], Literal['DEPTH_4_BIT'],
+               Literal['DEPTH_8_BIT'], Literal['DEPTH_24_BIT']]:
         if self.color_level == 'monochrome':
             return ColorDepth.MONOCHROME
         if self.color_level == 'ansicolors':
@@ -123,9 +125,10 @@ class KeybindingConfig:
 
 @dataclass
 class SignalServerConfig:
-    port: int = 9792 
+    port: int = 9792
     host: str = 'localhost'
     enable: bool = False
+
 
 @dataclass
 class ProcMuxConfig:
@@ -133,19 +136,22 @@ class ProcMuxConfig:
     signal_server: SignalServerConfig = SignalServerConfig()
     style: StyleConfig = StyleConfig()
     keybinding: KeybindingConfig = KeybindingConfig()
-    shell_cmd: List[str] = field(default_factory=lambda: [os.environ['SHELL'], '-c'])
+    shell_cmd: List[str] = field(
+        default_factory=lambda: [os.environ['SHELL'], '-c'])
     layout: LayoutConfig = LayoutConfig()
     log_file: Optional[str] = None
     enable_mouse: bool = True
 
     def __post_init__(self):
+
         def is_dict_like(obj):
             return type(obj) == dict or isinstance(obj, OrderedDict)
 
         if is_dict_like(self.procs):
             process_config_data = dict()
             for proc_key in self.procs:
-                process_config_data[proc_key] = ProcessConfig(**self.procs[proc_key])
+                process_config_data[proc_key] = ProcessConfig(
+                    **self.procs[proc_key])
             self.procs = process_config_data
         if is_dict_like(self.style):
             self.style = StyleConfig(**self.style)
@@ -163,6 +169,7 @@ def parse_config(config_file: str,
     if override_config_file:
         config_files.append(override_config_file)
 
-    config_dict = hiyapyco.load(*config_files, method=hiyapyco.METHOD_SIMPLE,
+    config_dict = hiyapyco.load(*config_files,
+                                method=hiyapyco.METHOD_SIMPLE,
                                 failonmissingfiles=True)
     return ProcMuxConfig(**config_dict)

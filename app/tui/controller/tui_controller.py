@@ -21,7 +21,9 @@ from app.util.interpolation import Interpolation
 
 
 class TUIController:
-    def __init__(self, config: ProcMuxConfig, terminal_placeholder: Window, float_container: FloatContainer):
+
+    def __init__(self, config: ProcMuxConfig, terminal_placeholder: Window,
+                 float_container: FloatContainer):
         self._terminal_placeholder = terminal_placeholder
         self._float_container = float_container
         self._tui_state: TUIState = TUIState(config)
@@ -32,12 +34,13 @@ class TUIController:
 
         self._server_controller = None
         if config.signal_server.enable:
-            def _start_process_and_refresh(process: Process): 
+
+            def _start_process_and_refresh(process: Process):
                 self.start_process(process)
                 self.refresh_app()
-            self._server_controller = start_server(config, 
-                                                   self._process_state, 
-                                                   self._terminal_controllers, 
+
+            self._server_controller = start_server(config, self._process_state,
+                                                   self._terminal_controllers,
                                                    _start_process_and_refresh)
 
     @property
@@ -122,7 +125,8 @@ class TUIController:
     @property
     def current_terminal_controller(self) -> Optional[TerminalController]:
         if self.selected_process:
-            return self._terminal_controllers.get(self.selected_process.index, None)
+            return self._terminal_controllers.get(self.selected_process.index,
+                                                  None)
         return None
 
     @property
@@ -142,27 +146,25 @@ class TUIController:
             interpolations: List[Interpolation] = []
 
             if len(process.config.interpolations) > 0:
-                id = InterpolationDialog(process,
-                                         run_in_background,
-                                         self.config,
-                                         self.float_container,
+                id = InterpolationDialog(process, run_in_background,
+                                         self.config, self.float_container,
                                          self.on_finish_interpolation)
                 self._tui_state.open_modal(id.get_keybindings())
                 id.start_interpolation()
                 return
 
-            terminal_controller.spawn_terminal(run_in_background, interpolations)
+            terminal_controller.spawn_terminal(run_in_background,
+                                               interpolations)
 
-    def on_finish_interpolation(self,
-                                process: Process,
+    def on_finish_interpolation(self, process: Process,
                                 run_in_background: bool,
-                                interpolations: Optional[List[Interpolation]]
-                                ):
+                                interpolations: Optional[List[Interpolation]]):
         self._tui_state.close_modal()
         self.focus_to_sidebar()
         terminal_controller = self._terminal_controllers[process.index]
         if interpolations and terminal_controller:
-            terminal_controller.spawn_terminal(run_in_background, interpolations)
+            terminal_controller.spawn_terminal(run_in_background,
+                                               interpolations)
 
     # /Terminal
 
@@ -199,7 +201,8 @@ class TUIController:
             app.layout.focus(element)
 
     def register_focusable_element(self, widget: FocusWidget, element: Any):
-        self._tui_state.register_focusable_element(FocusTarget(widget=widget, element=element))
+        self._tui_state.register_focusable_element(
+            FocusTarget(widget=widget, element=element))
 
     def deregister_focusable_element(self, widget: FocusWidget):
         self._tui_state.deregister_focusable_element(widget)
@@ -215,13 +218,19 @@ class TUIController:
         return False
 
     def toggle_sidebar_terminal_focus(self):
-        logger.info(f'toggling focus between sidebar and terminal- focus_widget:{self.focused_widget}')
+        logger.info(
+            f'toggling focus between sidebar and terminal- focus_widget:{self.focused_widget}'
+        )
         if self.docs_open:
-            logger.info('in toggle_sidebar_terminal_focus - but the docs are open, toggling docs off instead')
+            logger.info(
+                'in toggle_sidebar_terminal_focus - but the docs are open, toggling docs off instead'
+            )
             self.toggle_docs()
             return
         if self.zoomed_in:
-            logger.info('in toggle_sidebar_terminal_focus - currently zoomed in, toggling zoom off instead')
+            logger.info(
+                'in toggle_sidebar_terminal_focus - currently zoomed in, toggling zoom off instead'
+            )
             self.toggle_zoom()
             return
         if self.focused_widget == FocusWidget.TERMINAL:
@@ -262,7 +271,8 @@ class TUIController:
             return
 
         current_index = available_indices.index(self.selected_process.index)
-        new_index = ((current_index + direction) % len(self.filtered_process_list))
+        new_index = ((current_index + direction) %
+                     len(self.filtered_process_list))
         self._process_state.set_selected_process_by_y_pos(new_index)
 
     def sidebar_up(self):
@@ -391,80 +401,61 @@ class TUIController:
 
     def _add_docs_keybindings(self, kb: DocumentedKeybindings):
         kb.register_configured_keybinding_sans_event(
-            self.config.keybinding.docs,
-            self.close_docs,
-            'close docs')
+            self.config.keybinding.docs, self.close_docs, 'close docs')
 
     def _add_filter_keybindings(self, kb: DocumentedKeybindings):
         kb.register_configured_keybinding_sans_event(
-            self.config.keybinding.filter,
-            self.cancel_filter,
-            'exit filter')
+            self.config.keybinding.filter, self.cancel_filter, 'exit filter')
         kb.register_configured_keybinding_sans_event(
-            self.config.keybinding.submit_filter,
-            self.close_filter,
+            self.config.keybinding.submit_filter, self.close_filter,
             'submit filter')
 
     def _add_side_bar_keybindings(self, kb: DocumentedKeybindings):
+        kb.register_configured_keybinding_sans_event(self.config.keybinding.up,
+                                                     self.sidebar_up, 'up')
         kb.register_configured_keybinding_sans_event(
-            self.config.keybinding.up,
-            self.sidebar_up,
-            'up')
-        kb.register_configured_keybinding_sans_event(
-            self.config.keybinding.down,
-            self.sidebar_down,
-            'down')
+            self.config.keybinding.down, self.sidebar_down, 'down')
 
         if self.selected_process and self.selected_process.running:
             kb.register_configured_keybinding_sans_event(
-                self.config.keybinding.stop,
-                self.stop_process,
-                'stop')
+                self.config.keybinding.stop, self.stop_process, 'stop')
         else:
             kb.register_configured_keybinding_sans_event(
-                self.config.keybinding.start,
-                self.start_process,
-                'start')
+                self.config.keybinding.start, self.start_process, 'start')
 
         kb.register_configured_keybinding_sans_event(
-            self.config.keybinding.quit,
-            self.quit,
-            'quit')
+            self.config.keybinding.quit, self.quit, 'quit')
 
         kb.register_configured_keybinding_sans_event(
-            self.config.keybinding.filter,
-            self.start_filter,
-            'filter')
+            self.config.keybinding.filter, self.start_filter, 'filter')
 
         kb.register_configured_keybinding_sans_event(
-            self.config.keybinding.docs,
-            self.view_docs,
-            'docs')
+            self.config.keybinding.docs, self.view_docs, 'docs')
 
         return kb
 
     def _add_terminal_keybindings(self, kb: DocumentedKeybindings):
         if isinstance(self.current_terminal, Terminal):
             kb.register_configured_keybinding_sans_event(
-                self.config.keybinding.switch_focus,
-                self.switch_focus,
+                self.config.keybinding.switch_focus, self.switch_focus,
                 'switch focus')
             kb.register_configured_keybinding_sans_event(
-                self.config.keybinding.zoom,
-                self.zoom,
-                'zoom')
+                self.config.keybinding.zoom, self.zoom, 'zoom')
             kb.register_configured_keybinding_sans_event(
-                self.config.keybinding.toggle_scroll,
-                self.toggle_scroll,
+                self.config.keybinding.toggle_scroll, self.toggle_scroll,
                 'toggle scroll')
 
     # /Keybindings
 
-    def _create_terminal_controllers(self,
-                                     config: ProcMuxConfig,
-                                     process_list: List[Process],
-                                     ) -> Dict[int, TerminalController]:
-        return {p.index: TerminalController(self, config, p) for p in process_list}
+    def _create_terminal_controllers(
+        self,
+        config: ProcMuxConfig,
+        process_list: List[Process],
+    ) -> Dict[int, TerminalController]:
+        return {
+            p.index: TerminalController(self, config, p)
+            for p in process_list
+        }
 
     def autostart(self):
         logger.info('in autostart')

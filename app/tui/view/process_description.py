@@ -10,15 +10,14 @@ from app.tui.controller.tui_controller import TUIController
 
 
 class ProcessDescriptionPanel:
+
     def __init__(self, controller: TUIController):
         self._controller: TUIController = controller
-        self._container: Window = Window(
-            height=1,
-            content=FormattedTextControl(
-                text=self._get_formatted_text,
-                focusable=False,
-                show_cursor=False
-            ))
+        self._container: Window = Window(height=1,
+                                         content=FormattedTextControl(
+                                             text=self._get_formatted_text,
+                                             focusable=False,
+                                             show_cursor=False))
 
     def _get_formatted_text(self) -> Callable[[], FormattedText]:
         process = self._controller.selected_process

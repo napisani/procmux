@@ -6,6 +6,7 @@ from app.tui.types import Process
 
 
 class TerminalState:
+
     def __init__(self, process: Process):
         self.process = process
         self.running = False
