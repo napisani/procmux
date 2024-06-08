@@ -79,6 +79,10 @@ style:
   status_stopped_color: 'ansired'
   #the color of the right panel (terminal panel) when no terminal is created/selected yet
   placeholder_terminal_bg_color: '#1a1b26'
+  # show or hide the border around the terminal panel and side bar
+  show_borders: true 
+  # whether to show the scrollbar on the right side of the sidebar 
+  show_scrollbar: true 
   #character used to indicate the current selection
   pointer_char: '▶'
   #override default style classes
@@ -189,4 +193,14 @@ procs:
     shell: "echo '<first_echo:some default>' && echo '<second_echo>'"
     autostart: false 
     description: 'test interpolation'
+
+# these settings are used to control a signal server that can be used to send signals to procmux managed processes
+# using another terminal or script. when the signal server is enabled, it will listen on the configured host and port
+# for incoming signals. the signal server can be used to send signals to procmux managed processes without having procmux
+# in focus.
+# the procmux app can be used to send signals. Use any of the available procmux subcommands to send signals to the signal # server. IE: `procmux signal-stop --name 'long running print' --config /path/to/procmux.yaml`
+signal_server:
+  enable: true 
+  host: 'localhost'
+  port: 9792
 ```
