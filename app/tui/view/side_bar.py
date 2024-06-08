@@ -3,13 +3,14 @@ from __future__ import unicode_literals
 from typing import Any, List
 
 from prompt_toolkit.buffer import Buffer
-from prompt_toolkit.layout import DynamicContainer, HSplit, ScrollbarMargin, Window
+from prompt_toolkit.layout import (DynamicContainer, HSplit, ScrollbarMargin,
+                                   Window)
 from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.dimension import D, Dimension
-from prompt_toolkit.widgets import Frame
+from prompt_toolkit.widgets import Box, Frame
 
-from app.tui.types import FocusWidget
 from app.tui.controller.tui_controller import TUIController
+from app.tui.types import FocusWidget
 
 
 class SideBar:
@@ -40,22 +41,31 @@ class SideBar:
             return Window(height=D(min=0, max=0),
                           width=D(max=self._fixed_width - 1, weight=1))
 
-        self._container: Frame = Frame(
-            title='Processes',
-            style='class:sidebar',
-            width=D(min=self._fixed_width, max=self._fixed_width, weight=1),
-            body=HSplit([
-                DynamicContainer(get_container=_get_filter_container),
-                Window(
-                    content=self._list_control,
-                    style="class:select-box",
-                    height=Dimension(min=5),
-                    cursorline=True,
-                    right_margins=[
-                        ScrollbarMargin(display_arrows=True),
-                    ],
-                )
-            ]))
+        right_margins = []
+        if self._controller.config.style.show_scrollbar:
+            right_margins.append(ScrollbarMargin(display_arrows=True))
+        width = Dimension(min=self._fixed_width,
+                          max=self._fixed_width,
+                          weight=1)
+        sidebar_body = HSplit([
+            DynamicContainer(get_container=_get_filter_container),
+            Window(
+                content=self._list_control,
+                style="class:select-box",
+                height=Dimension(min=5, preferred=100000),
+                cursorline=True,
+                right_margins=right_margins,
+            )
+        ])
+        if self._controller.config.style.show_borders:
+            self._container = Frame(title='Processes',
+                                    style='class:sidebar',
+                                    width=width,
+                                    body=sidebar_body)
+        else:
+            self._container = Box(style='class:sidebar',
+                                  width=width,
+                                  body=sidebar_body)
 
     def on_filter_change(self, filter_text: str):
         if filter_text != self._filter_buffer.text:

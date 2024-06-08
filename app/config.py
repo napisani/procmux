@@ -70,6 +70,8 @@ class StyleConfig:
     status_stopped_color: str = 'ansired'
     placeholder_terminal_bg_color: str = '#1a1b26'
     pointer_char: str = '▶'
+    show_borders: bool = True
+    show_scrollbar: bool = True
     style_classes: Optional[Dict[str, str]] = None
     color_level: \
         Optional[

@@ -20,6 +20,10 @@ style:
   status_stopped_color: 'ansired'
   #the color of the right panel (terminal panel) when no terminal is created/selected yet
   placeholder_terminal_bg_color: '#1a1b26'
+  # show or hide the border around the terminal panel and side bar
+  show_borders: false 
+  # whether to show the scrollbar on the right side of the sidebar 
+  show_scrollbar: false 
   #character used to indicate the current selection
   pointer_char: '▶'
   #override default style classes
