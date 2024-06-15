@@ -155,8 +155,6 @@ def start_server(
                                     "Failed to stop process")
                                 return
                             start_process_callback(process)
-                            self._send_ok(b'{}')
-                            return
                 self._send_ok(b'{}')
 
             def handle_stop_running(self):
