@@ -4,55 +4,62 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-
-    mach-nix.url = "github:davhau/mach-nix";
-    flake-compat = {
-      url = "github:edolstra/flake-compat";
-      flake = false;
-    };
   };
 
-  outputs = { self, nixpkgs, mach-nix, flake-utils, ... }:
-    let
-      pythonVersion = "python39";
-    in
+  outputs = { self, nixpkgs, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        mach = mach-nix.lib.${system};
+        python = pkgs.python3;
+        pythonPackages = python.pkgs;
 
-        pythonApp = mach.buildPythonApplication ./.;
-        pythonAppEnv = mach.mkPython {
-          python = pythonVersion;
-          requirements = builtins.readFile ./requirements.txt;
-        };
-        pythonAppImage = pkgs.dockerTools.buildLayeredImage {
-          name = pythonApp.pname;
-          contents = [ pythonApp ];
-          config.Cmd = [ "${pythonApp}/bin/main" ];
-        };
-      in
-      rec
-      {
-        packages = {
-          image = pythonAppImage;
+        venvDir = "./venv";
 
-          pythonPkg = pythonApp;
-          default = packages.pythonPkg;
+        pythonApp = pythonPackages.buildPythonApplication {
+          pname = "procmux";
+          version = "0.1.0";
+          src = ./.;
+          nativeBuildInputs = [ pythonPackages.pip pythonPackages.virtualenv ];
+          format = "other";
+          buildInputs = [ pythonPackages.setuptools ];
+
+          buildPhase = ''
+            virtualenv ${venvDir}
+            source ${venvDir}/bin/activate
+            pip install -r requirements.txt
+            pip install -e .
+          '';
+
+          installPhase = ''
+            mkdir -p $out/bin
+            cp -r ${venvDir} $out/
+            echo "#!/bin/sh" > $out/bin/procmux
+            echo "source $out/${venvDir}/bin/activate" >> $out/bin/procmux
+            echo "exec python -m procmux \"\$@\"" >> $out/bin/procmux
+            chmod +x $out/bin/procmux
+          '';
         };
+      in {
+        packages = { default = pythonApp; };
 
         apps.default = {
           type = "app";
-          program = "${packages.pythonPkg}/bin/main";
+          program = "${pythonApp}/bin/procmux";
         };
 
-        devShells.default = pkgs.mkShellNoCC {
-          packages = [ pythonAppEnv ];
+        devShells.default = pkgs.mkShell {
+          buildInputs = [
+            python
+            pythonPackages.pip
+            pythonPackages.virtualenv
+            # Add any other development tools you need
+          ];
 
           shellHook = ''
-            export PYTHONPATH="${pythonAppEnv}/bin/python"
+            # Use the same virtualenv as in the build
+            source ${venvDir}/bin/activate
+            # The application is already installed in editable mode during the build
           '';
         };
-      }
-    );
+      });
 }
