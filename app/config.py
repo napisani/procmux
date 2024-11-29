@@ -24,6 +24,7 @@ class ProcessConfig:
     autostart: bool - Start process when procmux starts.
     stop: "SIGINT"|"SIGTERM"|"SIGKILL" - default will SIGKILL
     """
+
     autostart: bool = False
     shell: Optional[str] = None
     cmd: Optional[List[str]] = None
@@ -42,7 +43,8 @@ class ProcessConfig:
     def validate(self):
         if not self.cmd and not self.shell:
             raise MisconfigurationError(
-                'shell or cmd is required for every proc definition')
+                "shell or cmd is required for every proc definition"
+            )
 
     @property
     def interpolations(self) -> List[Interpolation]:
@@ -55,38 +57,48 @@ class ProcessConfig:
 class LayoutConfig:
     hide_help: bool = False
     hide_process_description_panel: bool = False
+    hide_sidebar_when_not_focused: bool = False
     processes_list_width: int = 31
     sort_process_list_alpha: bool = True
-    category_search_prefix: str = 'cat:'
-    field_replacement_prompt: str = '__FIELD_NAME__ ⮕  '
+    category_search_prefix: str = "cat:"
+    field_replacement_prompt: str = "__FIELD_NAME__ ⮕  "
 
 
 @dataclass
 class StyleConfig:
-    selected_process_color: str = 'ansiblack'
-    selected_process_bg_color: str = 'ansimagenta'
-    unselected_process_color: str = 'ansiblue'
-    status_running_color: str = 'ansigreen'
-    status_stopped_color: str = 'ansired'
-    placeholder_terminal_bg_color: str = '#1a1b26'
-    pointer_char: str = '▶'
+    selected_process_color: str = "ansiblack"
+    selected_process_bg_color: str = "ansimagenta"
+    unselected_process_color: str = "ansiblue"
+    status_running_color: str = "ansigreen"
+    status_stopped_color: str = "ansired"
+    placeholder_terminal_bg_color: str = "#1a1b26"
+    pointer_char: str = "▶"
     show_borders: bool = True
     show_scrollbar: bool = True
     style_classes: Optional[Dict[str, str]] = None
-    color_level: \
-        Optional[
-            Union[Literal['monochrome'], Literal['ansicolors'], Literal['256colors'], Literal['truecolors']]] = None
+    color_level: Optional[
+        Union[
+            Literal["monochrome"],
+            Literal["ansicolors"],
+            Literal["256colors"],
+            Literal["truecolors"],
+        ]
+    ] = None
 
     @property
     def color_depth(
-        self
-    ) -> Union[Literal['DEPTH_1_BIT'], Literal['DEPTH_4_BIT'],
-               Literal['DEPTH_8_BIT'], Literal['DEPTH_24_BIT']]:
-        if self.color_level == 'monochrome':
+        self,
+    ) -> Union[
+        Literal["DEPTH_1_BIT"],
+        Literal["DEPTH_4_BIT"],
+        Literal["DEPTH_8_BIT"],
+        Literal["DEPTH_24_BIT"],
+    ]:
+        if self.color_level == "monochrome":
             return ColorDepth.MONOCHROME
-        if self.color_level == 'ansicolors':
+        if self.color_level == "ansicolors":
             return ColorDepth.ANSI_COLORS_ONLY
-        if self.color_level == '256colors':
+        if self.color_level == "256colors":
             return ColorDepth.DEFAULT
         return ColorDepth.TRUE_COLOR
 
@@ -101,21 +113,21 @@ class StyleConfig:
 
 @dataclass
 class KeybindingConfig:
-    quit: List[str] = field(default_factory=lambda: ['q'])
-    filter: List[str] = field(default_factory=lambda: ['/'])
-    submit_filter: List[str] = field(default_factory=lambda: ['enter'])
-    next_input: List[str] = field(default_factory=lambda: ['tab', 'down'])
-    previous_input: List[str] = field(default_factory=lambda: ['s-tab', 'up'])
-    submit_dialog: List[str] = field(default_factory=lambda: ['enter'])
-    cancel_dialog: List[str] = field(default_factory=lambda: ['escape'])
-    start: List[str] = field(default_factory=lambda: ['s'])
-    stop: List[str] = field(default_factory=lambda: ['x'])
-    up: List[str] = field(default_factory=lambda: ['up', 'k'])
-    down: List[str] = field(default_factory=lambda: ['down', 'j'])
-    switch_focus: List[str] = field(default_factory=lambda: ['c-w'])
-    zoom: List[str] = field(default_factory=lambda: ['c-z'])
-    docs: List[str] = field(default_factory=lambda: ['?'])
-    toggle_scroll: List[str] = field(default_factory=lambda: ['c-s'])
+    quit: List[str] = field(default_factory=lambda: ["q"])
+    filter: List[str] = field(default_factory=lambda: ["/"])
+    submit_filter: List[str] = field(default_factory=lambda: ["enter"])
+    next_input: List[str] = field(default_factory=lambda: ["tab", "down"])
+    previous_input: List[str] = field(default_factory=lambda: ["s-tab", "up"])
+    submit_dialog: List[str] = field(default_factory=lambda: ["enter"])
+    cancel_dialog: List[str] = field(default_factory=lambda: ["escape"])
+    start: List[str] = field(default_factory=lambda: ["s"])
+    stop: List[str] = field(default_factory=lambda: ["x"])
+    up: List[str] = field(default_factory=lambda: ["up", "k"])
+    down: List[str] = field(default_factory=lambda: ["down", "j"])
+    switch_focus: List[str] = field(default_factory=lambda: ["c-w"])
+    zoom: List[str] = field(default_factory=lambda: ["c-z"])
+    docs: List[str] = field(default_factory=lambda: ["?"])
+    toggle_scroll: List[str] = field(default_factory=lambda: ["c-s"])
 
     def __post_init__(self):
         for keybinding_field in fields(KeybindingConfig):
@@ -128,7 +140,7 @@ class KeybindingConfig:
 @dataclass
 class SignalServerConfig:
     port: int = 9792
-    host: str = 'localhost'
+    host: str = "localhost"
     enable: bool = False
 
 
@@ -138,22 +150,19 @@ class ProcMuxConfig:
     signal_server: SignalServerConfig = SignalServerConfig()
     style: StyleConfig = StyleConfig()
     keybinding: KeybindingConfig = KeybindingConfig()
-    shell_cmd: List[str] = field(
-        default_factory=lambda: [os.environ['SHELL'], '-c'])
+    shell_cmd: List[str] = field(default_factory=lambda: [os.environ["SHELL"], "-c"])
     layout: LayoutConfig = LayoutConfig()
     log_file: Optional[str] = None
     enable_mouse: bool = True
 
     def __post_init__(self):
-
         def is_dict_like(obj):
             return type(obj) == dict or isinstance(obj, OrderedDict)
 
         if is_dict_like(self.procs):
             process_config_data = dict()
             for proc_key in self.procs:
-                process_config_data[proc_key] = ProcessConfig(
-                    **self.procs[proc_key])
+                process_config_data[proc_key] = ProcessConfig(**self.procs[proc_key])
             self.procs = process_config_data
         if is_dict_like(self.style):
             self.style = StyleConfig(**self.style)
@@ -165,13 +174,14 @@ class ProcMuxConfig:
             self.signal_server = SignalServerConfig(**self.signal_server)
 
 
-def parse_config(config_file: str,
-                 override_config_file: Optional[str] = None) -> ProcMuxConfig:
+def parse_config(
+    config_file: str, override_config_file: Optional[str] = None
+) -> ProcMuxConfig:
     config_files = [config_file]
     if override_config_file:
         config_files.append(override_config_file)
 
-    config_dict = hiyapyco.load(*config_files,
-                                method=hiyapyco.METHOD_SIMPLE,
-                                failonmissingfiles=True)
+    config_dict = hiyapyco.load(
+        *config_files, method=hiyapyco.METHOD_SIMPLE, failonmissingfiles=True
+    )
     return ProcMuxConfig(**config_dict)

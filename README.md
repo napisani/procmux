@@ -56,6 +56,8 @@ layout:
   hide_help: false
   # hide or show the window second from the bottom that shows the full command name and the description
   hide_process_description_panel: false
+  # hide the process panel when the terminal is in focus
+  hide_sidebar_when_not_focused: false
   # the prompt_toolkit width of the sidebar (containing all the process names)
   processes_list_width: 31
   # whether to sort the process list alphabetically
