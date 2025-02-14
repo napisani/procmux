@@ -1,58 +1,111 @@
 {
-  description = "procmux flake";
+  description = "procmux";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
-
-    mach-nix.url = "github:davhau/mach-nix";
-    flake-compat = {
-      url = "github:edolstra/flake-compat";
-      flake = false;
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    pyproject-nix = {
+      url = "github:nix-community/pyproject.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    uv2nix = {
+      url = "github:adisbladis/uv2nix";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    pyproject-build-systems = {
+      url = "github:pyproject-nix/build-system-pkgs";
+      inputs = {
+        pyproject-nix.follows = "pyproject-nix";
+        uv2nix.follows = "uv2nix";
+        nixpkgs.follows = "nixpkgs";
+      };
     };
   };
 
-  outputs = { self, nixpkgs, mach-nix, flake-utils, ... }:
+  outputs = { self, systems, nixpkgs, pyproject-nix, uv2nix
+    , pyproject-build-systems, ... }:
     let
-      pythonVersion = "python39";
-    in
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-        mach = mach-nix.lib.${system};
+      forEachSystem = nixpkgs.lib.genAttrs (import systems);
+      pkgsFor = forEachSystem (system: import nixpkgs { inherit system; });
 
-        pythonApp = mach.buildPythonApplication ./.;
-        pythonAppEnv = mach.mkPython {
-          python = pythonVersion;
-          requirements = builtins.readFile ./requirements.txt;
-        };
-        pythonAppImage = pkgs.dockerTools.buildLayeredImage {
-          name = pythonApp.pname;
-          contents = [ pythonApp ];
-          config.Cmd = [ "${pythonApp}/bin/main" ];
-        };
-      in
-      rec
-      {
-        packages = {
-          image = pythonAppImage;
+      inherit (nixpkgs) lib;
 
-          pythonPkg = pythonApp;
-          default = packages.pythonPkg;
-        };
+      workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
 
-        apps.default = {
-          type = "app";
-          program = "${packages.pythonPkg}/bin/main";
-        };
+      overlay = workspace.mkPyprojectOverlay {
+        sourcePreference = "wheel"; # or sourcePreference = "sdist";
+      };
 
-        devShells.default = pkgs.mkShellNoCC {
-          packages = [ pythonAppEnv ];
+      pyprojectOverrides = _final: _prev: { };
+
+      python = forEachSystem (system: pkgsFor.${system}.python312);
+
+      pythonSets = forEachSystem (system:
+        (pkgsFor.${system}.callPackage pyproject-nix.build.packages {
+          python = python.${system};
+        }).overrideScope (lib.composeManyExtensions [
+          pyproject-build-systems.overlays.default
+          overlay
+          pyprojectOverrides
+        ]));
+    in {
+      formatter = forEachSystem (system: pkgsFor.${system}.alejandra);
+
+      devShells = forEachSystem (system: {
+        default = let
+          editableOverlay =
+            workspace.mkEditablePyprojectOverlay { root = "$REPO_ROOT"; };
+          editablePythonSets = pythonSets.${system}.overrideScope
+            (lib.composeManyExtensions [
+              editableOverlay
+
+              (final: prev: {
+                procmux = prev.procmux.overrideAttrs (old: {
+                  src = lib.fileset.toSource {
+                    root = old.src;
+                    fileset = lib.fileset.unions (map (file: old.src + file) [
+                      "/pyproject.toml"
+                      "/README.md"
+                      "/app"
+                      "/procmux.py"
+                      "LICENSE"
+
+                    ]);
+                  };
+                  nativeBuildInputs = old.nativeBuildInputs
+                    ++ final.resolveBuildSystem { editables = [ ]; };
+                });
+              })
+            ]);
+
+          virtualenv =
+            editablePythonSets.mkVirtualEnv "procmux" workspace.deps.all;
+        in pkgsFor.${system}.mkShell {
+          packages = with pkgsFor.${system}; [ uv virtualenv ];
+
+          env = {
+            UV_NO_SYNC = "1";
+            UV_PYTHON = "${virtualenv}/bin/python";
+            UV_PYTHON_DOWNLOADS = "never";
+          };
 
           shellHook = ''
-            export PYTHONPATH="${pythonAppEnv}/bin/python"
+            unset PYTHONPATH
+            export REPO_ROOT=$(git rev-parse --show-toplevel)
           '';
         };
-      }
-    );
+      });
+
+      packages = forEachSystem (system: {
+        default =
+          pythonSets.${system}.mkVirtualEnv "procmux" workspace.deps.default;
+      });
+
+      apps = forEachSystem (system: {
+        default = {
+          type = "app";
+          program = "${self.packages.${system}.default}/bin/procmux";
+        };
+      });
+    };
 }

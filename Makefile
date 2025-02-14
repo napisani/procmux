@@ -1,5 +1,21 @@
-.PHONY: run 
+.PHONY: install run build test
+
+install:
+	uv sync # isntall all requirements 
 
 run:
-	python ./procmux.py	
+	uv run python ./procmux.py	
 
+build:
+	uv build
+
+test:
+	uv run python -m pytest -vv -s 
+
+# install_library:
+#     uv sync # pip install -r 
+#     uv pip install -e . # replace pip install -e . requirements.in
+# run_a_script:
+#     uv run python ./my_lib/my_script.py # replace python ./my_lib/my_script.py
+# launch_test:
+#     uv run pytest -n auto --cov-report=xml # replace uv run pytest -n auto --cov-report=xml
