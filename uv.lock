@@ -123,7 +123,7 @@ wheels = [
 [[package]]
 name = "procmux"
 version = "1.0.12"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
     { name = "hiyapyco" },
     { name = "prompt-toolkit" },

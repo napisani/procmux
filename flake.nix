@@ -38,7 +38,7 @@
 
       pyprojectOverrides = _final: _prev: { };
 
-      python = forEachSystem (system: pkgsFor.${system}.python312);
+      python = forEachSystem (system: pkgsFor.${system}.python39);
 
       pythonSets = forEachSystem (system:
         (pkgsFor.${system}.callPackage pyproject-nix.build.packages {
@@ -65,11 +65,8 @@
                     root = old.src;
                     fileset = lib.fileset.unions (map (file: old.src + file) [
                       "/pyproject.toml"
-                      "/README.md"
                       "/app"
                       "/procmux.py"
-                      "LICENSE"
-
                     ]);
                   };
                   nativeBuildInputs = old.nativeBuildInputs
@@ -95,7 +92,6 @@
           '';
         };
       });
-
       packages = forEachSystem (system: {
         default =
           pythonSets.${system}.mkVirtualEnv "procmux" workspace.deps.default;

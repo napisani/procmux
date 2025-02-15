@@ -42,7 +42,7 @@ package = true
 path = "procmux.py"  # If you keep the version info within the module, otherwise adjust accordingly
 
 [tool.hatch.build.targets.sdist]
-include = ["app/**", "README.md", "LICENSE", "pyproject.toml", "procmux.py"] 
+include = ["app/**", "pyproject.toml", "procmux.py"] 
 
 [tool.hatch.envs.default]
 dependencies = ["hatchling"]

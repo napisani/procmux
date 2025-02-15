@@ -1,4 +1,4 @@
-from prompt_toolkit.application.application import sys
+import sys
 from app.__main__ import run_app
 from app.config import parse_config
 from app.args import cli_args
