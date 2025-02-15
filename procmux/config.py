@@ -28,7 +28,7 @@ class ProcessConfig:
     autostart: bool = False
     shell: Optional[str] = None
     cmd: Optional[List[str]] = None
-    cwd: str = os.getcwd()
+    cwd: str = field(default_factory=lambda: os.getcwd())
     stop: str = "SIGKILL"
     env: Optional[Dict[str, Optional[str]]] = None
     add_path: Optional[Union[str, List[str]]] = None
@@ -132,7 +132,7 @@ class KeybindingConfig:
     def __post_init__(self):
         for keybinding_field in fields(KeybindingConfig):
             keybinding = getattr(self, keybinding_field.name)
-            if type(keybinding) == str:
+            if isinstance(keybinding, str):
                 keybinding = [keybinding]
                 setattr(self, keybinding_field.name, keybinding)
 
@@ -146,23 +146,28 @@ class SignalServerConfig:
 
 @dataclass
 class ProcMuxConfig:
-    procs: Dict[str, ProcessConfig] = field(default_factory=lambda: {})
-    signal_server: SignalServerConfig = SignalServerConfig()
-    style: StyleConfig = StyleConfig()
-    keybinding: KeybindingConfig = KeybindingConfig()
-    shell_cmd: List[str] = field(default_factory=lambda: [os.environ["SHELL"], "-c"])
-    layout: LayoutConfig = LayoutConfig()
+    procs: Dict[str, ProcessConfig] = field(default_factory=dict)
+    signal_server: SignalServerConfig = field(default_factory=SignalServerConfig)
+    style: StyleConfig = field(default_factory=StyleConfig)
+    keybinding: KeybindingConfig = field(default_factory=KeybindingConfig)
+    shell_cmd: List[str] = field(
+        default_factory=lambda: [os.environ.get("SHELL", "/bin/sh"), "-c"]
+    )
+    layout: LayoutConfig = field(default_factory=LayoutConfig)
     log_file: Optional[str] = None
     enable_mouse: bool = True
 
     def __post_init__(self):
         def is_dict_like(obj):
-            return type(obj) == dict or isinstance(obj, OrderedDict)
+            return isinstance(obj, (dict, OrderedDict))
 
         if is_dict_like(self.procs):
-            process_config_data = dict()
-            for proc_key in self.procs:
-                process_config_data[proc_key] = ProcessConfig(**self.procs[proc_key])
+            process_config_data = {}
+            for proc_key, proc_value in self.procs.items():
+                if isinstance(proc_value, dict):
+                    process_config_data[proc_key] = ProcessConfig(**proc_value)
+                else:
+                    process_config_data[proc_key] = proc_value
             self.procs = process_config_data
         if is_dict_like(self.style):
             self.style = StyleConfig(**self.style)

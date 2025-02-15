@@ -1,4 +1,4 @@
-.PHONY: install run build test
+.PHONY: install run build test publish nixbuild nixdevelop nixrun
 
 install:
 	uv sync # isntall all requirements 
@@ -21,3 +21,5 @@ nixrun:
 test:
 	uv run python -m pytest 
 
+publish:
+	uv publish
