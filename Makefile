@@ -4,13 +4,19 @@ install:
 	uv sync # isntall all requirements 
 
 run:
-	uv run python ./procmux.py	
+	uv run procmux 
 
 build:
 	uv build
 
+nixbuild: 
+	nix build
+nixrun: 
+	nix run
+
 test:
 	uv run python -m pytest -vv -s 
+
 
 # install_library:
 #     uv sync # pip install -r 

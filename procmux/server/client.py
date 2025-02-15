@@ -2,7 +2,7 @@ import http.client
 import json
 from urllib.parse import quote
 
-from app.config import ProcMuxConfig
+from procmux.config import ProcMuxConfig
 
 
 class SignalClient:

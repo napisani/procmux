@@ -2,7 +2,7 @@ from typing import Any, Callable, List, Optional
 
 from prompt_toolkit.key_binding import KeyBindings
 
-from app.tui.types import KeybindingDocumentation
+from procmux.tui.types import KeybindingDocumentation
 
 
 class DocumentedKeybindings(KeyBindings):

@@ -5,14 +5,14 @@ from typing import List, Optional, TYPE_CHECKING
 
 from ptterm import Terminal
 
-from app.config import ProcMuxConfig
-from app.log import logger
-from app.tui.state.terminal_state import TerminalState
-from app.tui.types import Process
-from app.util.interpolation import interpolate, Interpolation
+from procmux.config import ProcMuxConfig
+from procmux.log import logger
+from procmux.tui.state.terminal_state import TerminalState
+from procmux.tui.types import Process
+from procmux.util.interpolation import interpolate, Interpolation
 
 if TYPE_CHECKING:
-    from app.tui.controller.tui_controller import TUIController
+    from procmux.tui.controller.tui_controller import TUIController
 
 
 class TerminalController:

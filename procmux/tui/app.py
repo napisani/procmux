@@ -5,13 +5,13 @@ from prompt_toolkit.key_binding import DynamicKeyBindings
 from prompt_toolkit.layout import ConditionalContainer, DynamicContainer, FloatContainer, HSplit, Layout, VSplit, Window
 from prompt_toolkit.styles import Style
 
-from app.config import ProcMuxConfig
-from app.tui.controller.tui_controller import TUIController
-from app.tui.view.docs import DocsDialog
-from app.tui.view.help import HelpPanel
-from app.tui.view.process_description import ProcessDescriptionPanel
-from app.tui.view.side_bar import SideBar
-from app.tui.view.terminal import TerminalPanel
+from procmux.config import ProcMuxConfig
+from procmux.tui.controller.tui_controller import TUIController
+from procmux.tui.view.docs import DocsDialog
+from procmux.tui.view.help import HelpPanel
+from procmux.tui.view.process_description import ProcessDescriptionPanel
+from procmux.tui.view.side_bar import SideBar
+from procmux.tui.view.terminal import TerminalPanel
 
 
 def start_tui(config: ProcMuxConfig):

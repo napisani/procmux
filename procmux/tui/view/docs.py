@@ -6,8 +6,8 @@ from prompt_toolkit.formatted_text.base import FormattedText
 from prompt_toolkit.layout import FormattedTextControl, Window
 from prompt_toolkit.widgets import Frame
 
-from app.tui.types import FocusWidget
-from app.tui.controller.tui_controller import TUIController
+from procmux.tui.types import FocusWidget
+from procmux.tui.controller.tui_controller import TUIController
 
 
 class DocsDialog:

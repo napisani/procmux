@@ -7,11 +7,11 @@ from time import sleep, time
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 from urllib.parse import unquote
 
-from app.config import ProcMuxConfig
-from app.log import logger
-from app.tui.controller.terminal_controller import TerminalController
-from app.tui.state.process_state import ProcessState
-from app.tui.types import Process
+from procmux.config import ProcMuxConfig
+from procmux.log import logger
+from procmux.tui.controller.terminal_controller import TerminalController
+from procmux.tui.state.process_state import ProcessState
+from procmux.tui.types import Process
 
 # Timeout (in seconds) for restarting a process
 # maybe this can come from a query parameter later on

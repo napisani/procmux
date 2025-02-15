@@ -8,8 +8,8 @@ from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.dimension import D, Dimension
 from prompt_toolkit.widgets import Box, Frame
 
-from app.tui.controller.tui_controller import TUIController
-from app.tui.types import FocusWidget
+from procmux.tui.controller.tui_controller import TUIController
+from procmux.tui.types import FocusWidget
 
 
 class SideBar:

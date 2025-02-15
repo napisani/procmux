@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Any
 
-from app.config import ProcessConfig
+from procmux.config import ProcessConfig
 
 
 class FocusWidget(Enum):

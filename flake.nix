@@ -65,8 +65,8 @@
                     root = old.src;
                     fileset = lib.fileset.unions (map (file: old.src + file) [
                       "/pyproject.toml"
-                      "/app"
-                      "/procmux.py"
+                      # "/README.md"
+                      "/procmux"
                     ]);
                   };
                   nativeBuildInputs = old.nativeBuildInputs
@@ -92,6 +92,7 @@
           '';
         };
       });
+
       packages = forEachSystem (system: {
         default =
           pythonSets.${system}.mkVirtualEnv "procmux" workspace.deps.default;

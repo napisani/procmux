@@ -6,7 +6,7 @@ import hiyapyco
 from prompt_toolkit.layout import D, Dimension
 from prompt_toolkit.output import ColorDepth
 
-from app.util.interpolation import Interpolation, parse_interpolations
+from procmux.util.interpolation import Interpolation, parse_interpolations
 
 
 class MisconfigurationError(Exception):

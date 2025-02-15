@@ -2,7 +2,7 @@ from typing import Optional
 
 from ptterm import Terminal
 
-from app.tui.types import Process
+from procmux.tui.types import Process
 
 
 class TerminalState:

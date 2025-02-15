@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 
-from app.config import ProcMuxConfig, ProcessConfig
-from app.tui.types import Process
+from procmux.config import ProcMuxConfig, ProcessConfig
+from procmux.tui.types import Process
 
 
 class ProcessState:

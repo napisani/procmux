@@ -8,16 +8,16 @@ from prompt_toolkit.layout import FloatContainer, Window
 from prompt_toolkit.mouse_events import MouseEvent, MouseEventType
 from ptterm import Terminal
 
-from app.config import ProcMuxConfig
-from app.log import logger
-from app.server.server import start_server
-from app.tui.controller.terminal_controller import TerminalController
-from app.tui.interpolation_dialog import InterpolationDialog
-from app.tui.keybindings import DocumentedKeybindings
-from app.tui.state.process_state import ProcessState
-from app.tui.state.tui_state import TUIState
-from app.tui.types import FocusTarget, FocusWidget, Process
-from app.util.interpolation import Interpolation
+from procmux.config import ProcMuxConfig
+from procmux.log import logger
+from procmux.server.server import start_server
+from procmux.tui.controller.terminal_controller import TerminalController
+from procmux.tui.interpolation_dialog import InterpolationDialog
+from procmux.tui.keybindings import DocumentedKeybindings
+from procmux.tui.state.process_state import ProcessState
+from procmux.tui.state.tui_state import TUIState
+from procmux.tui.types import FocusTarget, FocusWidget, Process
+from procmux.util.interpolation import Interpolation
 
 
 class TUIController:

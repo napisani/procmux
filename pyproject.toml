@@ -27,22 +27,27 @@ dependencies = [
     "pytest==7.1.3",
 ]
 
-[project.scripts]
-procmux = "procmux:start_cli"
+# [project.scripts]
+# procmux = "procmux:start_cli"
 
 [project.urls]
 homepage = "https://github.com/napisani/procmux"
 repository = "https://github.com/napisani/procmux"
 documentation = "https://github.com/napisani/procmux"
 
-[tool.uv]
-package = true
+# [tool.uv]
+# package = true
 
-[tool.hatch.version]
-path = "procmux.py"  # If you keep the version info within the module, otherwise adjust accordingly
+# [tool.hatch.version]
+# path = "procmux/__init__.py"  # If you keep the version info within the module, otherwise adjust accordingly
 
 [tool.hatch.build.targets.sdist]
-include = ["app/**", "pyproject.toml", "procmux.py"] 
+include = ["procmux/**", "pyproject.toml"] 
 
-[tool.hatch.envs.default]
-dependencies = ["hatchling"]
+# [tool.hatch.envs.default]
+# dependencies = ["hatchling"]
+[tool.hatch.build.targets.wheel]
+packages = ["procmux"]
+
+[project.scripts]
+procmux = "procmux:start_cli"

@@ -3,11 +3,11 @@ from prompt_toolkit.application import get_app
 from prompt_toolkit.layout import Dimension, Float, FloatContainer, HSplit, VSplit
 from prompt_toolkit.widgets import Box, Button, Frame, TextArea
 
-from app.config import ProcMuxConfig
-from app.log import logger
-from app.tui.keybindings import DocumentedKeybindings
-from app.tui.types import Process
-from app.util.interpolation import Interpolation
+from procmux.config import ProcMuxConfig
+from procmux.log import logger
+from procmux.tui.keybindings import DocumentedKeybindings
+from procmux.tui.types import Process
+from procmux.util.interpolation import Interpolation
 
 
 class InterpolationDialog():

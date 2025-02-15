@@ -1,8 +1,8 @@
 from typing import Any, List, Optional
 
-from app.config import ProcMuxConfig
-from app.tui.keybindings import DocumentedKeybindings
-from app.tui.types import FocusTarget, FocusWidget
+from procmux.config import ProcMuxConfig
+from procmux.tui.keybindings import DocumentedKeybindings
+from procmux.tui.types import FocusTarget, FocusWidget
 
 
 class TUIState:

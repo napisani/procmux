@@ -4,8 +4,8 @@ import tempfile
 
 import pyte
 
-from app.__main__ import run_app
-from app.config import parse_config
+from procmux.__main__ import run_app
+from procmux.config import parse_config
 
 
 def _get_config_yaml(log_file: str) -> str:

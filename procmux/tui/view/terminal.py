@@ -1,8 +1,8 @@
 from prompt_toolkit.layout import Dimension, DynamicContainer, VSplit
 from prompt_toolkit.widgets import Box, Frame
 
-from app.tui.controller.tui_controller import TUIController
-from app.tui.types import FocusWidget
+from procmux.tui.controller.tui_controller import TUIController
+from procmux.tui.types import FocusWidget
 
 
 class TerminalPanel:
