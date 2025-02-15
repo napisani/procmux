@@ -11,17 +11,13 @@ build:
 
 nixbuild: 
 	nix build
+
+nixdevelop: 
+	nix develop .
+
 nixrun: 
 	nix run
 
 test:
-	uv run python -m pytest -vv -s 
+	uv run python -m pytest 
 
-
-# install_library:
-#     uv sync # pip install -r 
-#     uv pip install -e . # replace pip install -e . requirements.in
-# run_a_script:
-#     uv run python ./my_lib/my_script.py # replace python ./my_lib/my_script.py
-# launch_test:
-#     uv run pytest -n auto --cov-report=xml # replace uv run pytest -n auto --cov-report=xml

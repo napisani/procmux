@@ -15,3 +15,4 @@ build/
 .pypirc
 result
 result/
+.aider*
