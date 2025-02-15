@@ -65,7 +65,7 @@
                     root = old.src;
                     fileset = lib.fileset.unions (map (file: old.src + file) [
                       "/pyproject.toml"
-                      # "/README.md"
+                      "/README.md"
                       "/procmux"
                     ]);
                   };

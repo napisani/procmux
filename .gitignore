@@ -13,3 +13,5 @@ readme.local.md
 dist/
 build/
 .pypirc
+result
+result/
