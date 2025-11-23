@@ -4,6 +4,18 @@ a TUI utility for running multiple commands in parallel in easily switchable ter
 
 this app is heavily influenced by this TUI app: https://github.com/pvolok/mprocs
 
+---
+
+## Successor Project
+
+**This project has been superseded by [proctmux](https://github.com/napisani/proctmux)**, which offers several improvements:
+
+1. **Single Binary Distribution** - Built in Go, proctmux can be distributed as a standalone binary with no runtime dependencies
+2. **Process Separation with IPC** - The process list and process viewer communicate via IPC, allowing for more flexible architecture
+3. **Native Terminal Integration** - Instead of implementing terminal emulation, proctmux uses your existing terminal, meaning scrolling, zooming, and multiplexing behavior works like any other application
+
+---
+
 ### The goals/use-cases:
 
 procmux allows the user to run multiple commands in parallel and makes it
@@ -60,8 +72,10 @@ layout:
   hide_sidebar_when_not_focused: false
   # the prompt_toolkit width of the sidebar (containing all the process names)
   processes_list_width: 31
-  # whether to sort the process list alphabetically
+  # whether to sort the process list alphabetically (applied after running-status sort if enabled)
   sort_process_list_alpha: True
+  # whether to sort processes by running status first (running processes appear at the top)
+  sort_process_list_running_first: False
   # used as the prefix for category filters of the process list
   category_search_prefix: 'cat:'
   # the prompt template to be rendered everytime a field replacement input box is rendered
@@ -206,3 +220,49 @@ signal_server:
   host: 'localhost'
   port: 9792
 ```
+
+## Signal Server
+
+When the signal server is enabled in your configuration, procmux starts an HTTP server that allows you to control processes remotely. This is useful for automation, CI/CD pipelines, or controlling procmux from external scripts.
+
+### API Endpoints
+
+The signal server provides the following HTTP endpoints:
+
+#### GET Endpoints
+
+- `GET /` - Returns a list of all processes with their current status
+
+#### POST Endpoints
+
+- `POST /stop-by-name/{process_name}` - Stops a specific process by name
+- `POST /start-by-name/{process_name}` - Starts a specific process by name
+- `POST /restart-by-name/{process_name}` - Restarts a specific process by name
+- `POST /restart-running` - Restarts all currently running processes
+- `POST /stop-running` - Stops all currently running processes
+
+### Command Line Interface
+
+You can also use the procmux CLI to send signals to a running procmux instance:
+
+```bash
+# Stop a process by name
+procmux signal-stop --name 'process-name' --config /path/to/procmux.yaml
+
+# Start a process by name
+procmux signal-start --name 'process-name' --config /path/to/procmux.yaml
+
+# Restart a process by name
+procmux signal-restart --name 'process-name' --config /path/to/procmux.yaml
+
+# Restart all running processes
+procmux signal-restart-running --config /path/to/procmux.yaml
+
+# Stop all running processes
+procmux signal-stop-running --config /path/to/procmux.yaml
+
+# List all processes
+procmux signal-list --config /path/to/procmux.yaml
+```
+
+Note that processes with interpolations (required input values) cannot be started or restarted remotely.
